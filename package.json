@@ -12,7 +12,7 @@
         "production": "mix --production"
     },
     "devDependencies": {
-        "babel-plugin-module-resolver": "^4.1.0",
+        "babel-plugin-module-resolver": "^5.0.0",
         "laravel-mix": "^6.0.39",
         "less": "^4.1.2",
         "less-loader": "^10.2.0",
