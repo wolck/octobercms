@@ -190,6 +190,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Middleware Group
+    |--------------------------------------------------------------------------
+    |
+    | The name of the middleware group to apply to all CMS application routes.
+    | You may use this to apply your own middleware definition, or use some
+    | of the defaults: web, api
+    |
+    */
+
+    'middleware_group' => 'web',
+
+    /*
+    |--------------------------------------------------------------------------
     | V1 Security Policy
     |--------------------------------------------------------------------------
     |
@@ -201,5 +214,20 @@ return [
     */
 
     'security_policy_v1' => env('CMS_SECURITY_POLICY_V1', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | V1 Exception Policy
+    |--------------------------------------------------------------------------
+    |
+    | When debug mode is off, throwing exceptions in AJAX will display a generic
+    | message, except for specific exception types such as ApplicationException
+    | and ValidationException (allow-list). Instead, you may use V1, which is
+    | a more relaxed policy that allows all messages and blocks common exception
+    | types (block-list) but may still leak information in rare cases.
+    |
+    */
+
+    'exception_policy_v1' => env('CMS_EXCEPTION_POLICY_V1', false),
 
 ];

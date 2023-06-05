@@ -31,7 +31,14 @@ return [
     |--------------------------------------------------------------------------
     |
     | The default backend customization settings. These values are all optional
-    | and remember to set the enabled value to true.
+    | and remember to set the enabled value to true. Supported values:
+    |
+    | - menu_mode: inline, text, tile, collapse, icons, left
+    | - color_mode: light, dark, auto
+    | - color_palette: default, classic, oxford, console, valentino, punch
+    | - login_background_type: color, wallpaper
+    | - login_background_wallpaper_size: auto, cover
+    | - login_image_type: autumn_images, custom
     |
     */
 
@@ -40,8 +47,12 @@ return [
         'app_name' => env('APP_NAME', 'October CMS'),
         'tagline' => 'Administration Panel',
         'menu_mode' => 'icons',
-        'favicon_path' => '~/app/assets/images/logo.png',
+        'color_mode' => 'light',
+        'color_palette' => 'default',
         'logo_path' => '~/app/assets/images/logo.png',
+        'favicon_path' => '~/app/assets/images/favicon.png',
+        'menu_logo_path' => '~/app/assets/images/menu_logo.png',
+        'dashboard_icon_path' => '~/app/assets/images/dashboard_icon.png',
         'stylesheet_path' => '~/app/assets/less/styles.less',
         'login_background_type' => 'color',
         'login_background_color' => '#fef6eb',
@@ -131,7 +142,7 @@ return [
     | require_lowercase - Require at least one lowercase letter (a–z)
     | require_number    - Require at least one number
     | require_nonalpha  - Require at least one non-alphanumeric character
-    | expire_days       - Enable password expiration after number of days (@todo)
+    | expire_days       - Enable password expiration after number of days
     |
     */
 
@@ -141,6 +152,7 @@ return [
         'require_lowercase' => false,
         'require_number' => false,
         'require_nonalpha' => false,
+        'expire_days' => false,
     ],
 
     /*
@@ -182,5 +194,17 @@ return [
     */
 
     'timezone' => 'UTC',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Middleware Group
+    |--------------------------------------------------------------------------
+    |
+    | The name of the middleware group to apply to all backend application routes.
+    | You may use this to apply your own middleware definition.
+    |
+    */
+
+    'middleware_group' => 'web',
 
 ];
