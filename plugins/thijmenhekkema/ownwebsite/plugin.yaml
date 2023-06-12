@@ -1,0 +1,6 @@
+plugin:
+    name: 'thijmenhekkema.ownwebsite::lang.plugin.name'
+    description: 'thijmenhekkema.ownwebsite::lang.plugin.description'
+    author: ThijmenHekkema
+    icon: oc-icon-archive
+    homepage: ''

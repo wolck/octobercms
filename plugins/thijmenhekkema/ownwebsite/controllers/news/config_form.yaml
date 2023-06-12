@@ -1,0 +1,10 @@
+name: News
+form: $/thijmenhekkema/ownwebsite/models/news/fields.yaml
+modelClass: Thijmenhekkema\Ownwebsite\Models\News
+defaultRedirect: thijmenhekkema/ownwebsite/news
+create:
+    redirect: 'thijmenhekkema/ownwebsite/news/update/:id'
+    redirectClose: thijmenhekkema/ownwebsite/news
+update:
+    redirect: thijmenhekkema/ownwebsite/news
+    redirectClose: thijmenhekkema/ownwebsite/news

@@ -1,0 +1,12 @@
+title = "News single"
+layout = "default"
+url = "/news/:id"
+
+[builderDetails news]
+modelClass = "Thijmenhekkema\Ownwebsite\Models\News"
+identifierValue = "{{ :id }}"
+modelKeyColumn = "id"
+displayColumn = "title"
+notFoundMessage = "Record not found"
+==
+{% component "news" %}

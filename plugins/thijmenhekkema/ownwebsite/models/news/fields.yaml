@@ -1,0 +1,27 @@
+fields:
+    title:
+        label: 'News Title'
+        span: full
+        placeholder: Title...
+        required: 1
+        type: text
+    intro:
+        label: Introduction
+        span: full
+        placeholder: Introduction...
+        required: 1
+        type: text
+    description:
+        label: Description
+        size: ''
+        span: full
+        placeholder: Description...
+        required: 1
+        type: richeditor
+    date:
+        label: 'upload date'
+        mode: datetime
+        span: full
+        placeholder: Date...
+        required: 1
+        type: datepicker

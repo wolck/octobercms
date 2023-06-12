@@ -1,0 +1,16 @@
+columns:
+    title:
+        label: Title
+        type: text
+        searchable: true
+        sortable: true
+    intro:
+        label: Intro
+        type: text
+    description:
+        label: Description
+        type: text
+    date:
+        label: Date
+        type: date
+        sortable: true

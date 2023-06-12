@@ -1,0 +1,19 @@
+title = "AllNews"
+layout = "default"
+url = "/news/:page?"
+
+[builderList news]
+modelClass = "Thijmenhekkema\Ownwebsite\Models\News"
+scope = "-"
+scopeValue = "{{ :scope }}"
+displayColumn = "title"
+noRecordsMessage = "No records found"
+detailsPage = "news-single"
+detailsKeyColumn = "slug"
+detailsUrlParameter = "slug"
+recordsPerPage = 1
+pageNumber = "{{ :page }}"
+==
+<center>
+{% component "news" %}
+</center>

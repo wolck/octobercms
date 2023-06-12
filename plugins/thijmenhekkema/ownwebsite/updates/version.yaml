@@ -1,0 +1,5 @@
+v1.0.1:
+    - 'Initialize plugin'
+v1.0.2:
+    - 'Created table thijmenhekkema_ownwebsite_latestnews'
+    - builder_table_create_thijmenhekkema_ownwebsite_latestnews.php
