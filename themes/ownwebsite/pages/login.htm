@@ -5,9 +5,10 @@ title = "login"
 <link href="{{ 'assets/css/bootstrap.min.css' | theme }}" rel="stylesheet">
 <link href="{{ 'assets/css/style.css' | theme }}" rel="stylesheet">
 
+{% partial "navbar" %}
 
 <div class="container">
-        <h3 class="text-center d-flex justify-content-center font-weight-bold" style="color: #E10600; margin-top: 50px; margin-bottom: 10px">Log in </h3>
+        <h3 class="text-center d-flex justify-content-center font-weight-bold" style="color: #E10600; margin-top: 50px; margin-bottom">Log in </h3>
 
         <form method="POST">
             <!-- Username input -->
