@@ -1,0 +1,82 @@
+url = "/"
+title = "Homepage"
+==
+<link href="{{ 'assets/css/bootstrap.min.css' | theme }}" rel="stylesheet">
+<link href="{{ 'assets/css/style.css' | theme }}" rel="stylesheet">
+
+
+{% partial "navbar" %}
+
+<style>
+        .news-image {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+
+        .news-image img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+    </style>
+
+<div class="container">
+        <div class="row">
+            <div class="col-md-8">
+                <!-- Latest News -->
+                <h2>Latest News</h2>
+                <div class="news-placeholder">
+                                        {% for row, welk in conn %}  row.id
+                        {{ "<div class='news-item'><div class='news-image'><img src='uploads/" ~ row.image ~ "' alt='News Image' class='img-fluid'></div>
+                            <div class='news-content'>" }}
+                        {{ "<h3 class='news-title'>" ~ row.title ~ "</h3>" }}
+                        {{ "<p class='news-date'>" ~ row.date ~ "</p>" }}
+                        {{ "<p class='news-description news'>" ~ row.intro ~ "</p>" }}
+                        {{ welk }}
+                        {{ "</div></div>" }}
+                    {% endfor %}
+
+                </div>
+                <div class="video-placeholder">
+                                {# sql2  "SELECT * FROM YTVideo ORDER BY id DESC LIMIT 1"  #}
+                {#  YouTube Video  #}
+                
+                {% for row2, welk in conn %}  row2.id
+                    {{ "<div class='video-container'><h2>Latest YouTube Video</h2>" }}
+                    {{ "<h3 class='news-title'>" ~ row2.Title ~ "</h3>" }}
+                    {{ "<p class='news-date'>" ~ row2.date ~ "</p>" }}
+                    {{ "<iframe width='800' height='450' src='https://www.youtube.com/embed/" ~ row2.YT_id ~ "' frameborder='0' allowfullscreen></iframe>" }}
+
+                    {{ "</div>" }}
+                {% endfor %}
+                </div>
+            </div>
+            <div class="col-md-8">
+                
+
+                <!-- Standings -->
+                <h2>Standings</h2>
+                <div class="standings-placeholder">
+                    <!-- Placeholder content for top 5 drivers and teams standings -->
+                    <h3>Top 5 Drivers</h3>
+                    <div class="drivers-placeholder">
+                        <p>No standings available at the moment.</p>
+                    </div>
+
+                    <h3>Top 5 Teams</h3>
+                    <div class="teams-placeholder">
+                        <p>No standings available at the moment.</p>
+                    </div>
+                </div>
+                <!-- Fan Store -->
+                <h2>Fan Store</h2>
+                <div class="fanstore-placeholder">
+                    <!-- Placeholder content for fan store -->
+                    <p>No items available in the fan store.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% partial "footer" %}

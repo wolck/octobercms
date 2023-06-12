@@ -16,7 +16,7 @@ services:
             - .:/application
         environment:
             - MYSQL_ROOT_PASSWORD=root
-            - MYSQL_DATABASE=oct_local
+            - MYSQL_DATABASE=project
             - MYSQL_USER=user
             - MYSQL_PASSWORD=pwd
         ports:

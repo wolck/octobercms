@@ -1,0 +1,107 @@
+{# <?php session_start() ?> #}
+
+    <nav class="navbar navbar-expand-lg navbar-light color nav">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ 'homepage' }}"><img class="figure-img navlogo" src="{{ 'assets/images/navlogo.png' | theme }}" alt="Navbar logo" height="35"></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon  text-light"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link text-light active" aria-current="page" data-bs-dismiss="collapse" href="index.php">Home</a>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link text-light teambut" id="teamsDropdown" role="button" aria-expanded="false" data-bs-dismiss="collapse" data-bs-hover="dropdown">
+                            Teams
+                        </a>
+                        <ul class="dropdown-menu bg-white teams" aria-labelledby="teamsDropdown">
+                            <li><a class="dropdown-item team alfa" href="{{ 'teams' | page }}"><img class="Tlogo" src="{{ 'assets/images/teams/AlfaRomeo.png' | theme }}" alt="Alfa Romeo">Alfa Romeo</a></li>
+<li><a class="dropdown-item team aston" href="{{ 'teams' | page }}"><img class="Tlogo4" src="{{ 'assets/images/teams/AstonMartin.png' | theme }}" alt="Aston Martin">Aston Martin</a></li>
+<li><a class="dropdown-item team alpine" href="{{ 'teams' | page }}"><img class="Tlogo" src="{{ 'assets/images/teams/alpine.png' | theme }}" alt="Alpine">Alpine</a></li>
+<li><a class="dropdown-item team mclaren" href="{{ 'teams' | page }}"><img class="Tlogo3" src="{{ 'assets/images/teams/McLaren.png' | theme }}" alt="McLaren">McLaren</a></li>
+<li><a class="dropdown-item team mercedes" href="{{ 'teams' | page }}"><img class="Tlogo3" src="{{ 'assets/images/teams/mercedes.png' | theme }}" alt="Mercedes">Mercedes</a></li>
+<li><a class="dropdown-item team haas" href="{{ 'teams' | page }}"><img class="Tlogo" src="{{ 'assets/images/teams/haas.png' | theme }}" alt="Haas">Haas</a></li>
+<li><a class="dropdown-item team redbull" href="{{ 'teams' | page }}"><img class="Tlogo" src="{{ 'assets/images/teams/redbull.png' | theme }}" alt="Red Bull">Red Bull</a></li>
+<li><a class="dropdown-item team alphatauri" href="{{ 'teams' | page }}"><img class="Tlogo3" src="{{ 'assets/images/teams/alphatauri.png' | theme }}" alt="AlphaTauri">AlphaTauri</a></li>
+<li><a class="dropdown-item team ferrari" href="{{ 'teams' | page }}"><img class="Tlogo" src="{{ 'assets/images/teams/ferrari.png' | theme }}" alt="Ferrari">Ferrari</a></li>
+<li><a class="dropdown-item team williams" href="{{ 'teams' | page }}"><img class="Tlogo" src="{{ 'assets/images/teams/williams.png' | theme }}" alt="Williams">Williams</a></li>
+
+                        </ul>
+                    </li>
+
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link text-light teambut" id="driversDropdown" role="button" aria-expanded="false" data-bs-dismiss="collapse" data-bs-hover="dropdown" href="{{ 'drivers' | page }}">
+                            drivers
+                        </a>
+                        <ul class="dropdown-menu bg-white drivers" aria-labelledby="driversDropdown">
+                            <li><a class="dropdown-item driver W williams" href="{{ 'drivers' | page }}"><img class="Dlogo" src="{{ 'assets/images/drivers/AA.png' | theme }}" alt="Alexander Albon">Alexander Albon</a></li>
+<li><a class="dropdown-item driver F ferrari" href="{{ 'drivers' | page }}"><img class="Dlogo" src="{{ 'assets/images/drivers/CS.png' | theme }}" alt="Carlos Sainz">Carlos Sainz</a></li>
+<li><a class="dropdown-item driver F ferrari" href="{{ 'drivers' | page }}"><img class="Dlogo" src="{{ 'assets/images/drivers/CL.png' | theme }}" alt="Charles Leclerc">Charles Leclerc</a></li>
+<li><a class="dropdown-item driver AL alpine" href="{{ 'drivers' | page }}"><img class="Dlogo" src="{{ 'assets/images/drivers/EO.png' | theme }}" alt="Esteban Ocon">Esteban Ocon</a></li>
+<li><a class="dropdown-item driver AS aston" href="{{ 'drivers' | page }}"><img class="Dlogo" src="{{ 'assets/images/drivers/FA.png' | theme }}" alt="Fernando Alonso">Fernando Alonso</a></li>
+<li><a class="dropdown-item driver M mercedes" href="{{ 'drivers' | page }}"><img class="Dlogo" src="{{ 'assets/images/drivers/GR.png' | theme }}" alt="George Russell">George Russell</a></li>
+<li><a class="dropdown-item driver H haas" href="{{ 'drivers' | page }}"><img class="Dlogo" src="{{ 'assets/images/drivers/KM.png' | theme }}" alt="Kevin Magnussen">Kevin Magnussen</a></li>
+<li><a class="dropdown-item driver AS aston" href="{{ 'drivers' | page }}"><img class="Dlogo" src="{{ 'assets/images/drivers/LS.png' | theme }}" alt="Lance Stroll">Lance Stroll</a></li>
+<li><a class="dropdown-item driver MC mclaren" href="{{ 'drivers' | page }}"><img class="Dlogo" src="{{ 'assets/images/drivers/LN.png' | theme }}" alt="Lando Norris">Lando Norris</a></li>
+<li><a class="dropdown-item driver M mercedes" href="{{ 'drivers' | page }}"><img class="Dlogo" src="{{ 'assets/images/drivers/LH.png' | theme }}" alt="Lewis Hamilton">Lewis Hamilton</a></li>
+<li><a class="dropdown-item driver W williams" href="{{ 'drivers' | page }}"><img class="Dlogo" src="{{ 'assets/images/drivers/LSW.png' | theme }}" alt="Logan Sargeant">Logan Sargeant</a></li>
+<li><a class="dropdown-item driver R redbull" href="{{ 'drivers' | page }}"><img class="Dlogo" src="{{ 'assets/images/drivers/MV.png' | theme }}" alt="Max Verstappen">Max Verstappen</a></li>
+<li><a class="dropdown-item driver H haas" href="{{ 'drivers' | page }}"><img class="Dlogo" src="{{ 'assets/images/drivers/NH.png' | theme }}" alt="Nico Hulkenberg">Nico Hulkenberg</a></li>
+<li><a class="dropdown-item driver A alphatauri" href="{{ 'drivers' | page }}"><img class="Dlogo" src="{{ 'assets/images/drivers/NDV.png' | theme }}" alt="Nyck de Vries">Nyck de Vries</a></li>
+<li><a class="dropdown-item driver MC mclaren" href="{{ 'drivers' | page }}"><img class="Dlogo" src="{{ 'assets/images/drivers/OP.png' | theme }}" alt="Oscar Piastri">Oscar Piastri</a></li>
+<li><a class="dropdown-item driver AL alpine" href="{{ 'drivers' | page }}"><img class="Dlogo" src="{{ 'assets/images/drivers/PG.png' | theme }}" alt="Pierre Gasly">Pierre Gasly</a></li>
+<li><a class="dropdown-item driver R redbull" href="{{ 'drivers' | page }}"><img class="Dlogo" src="{{ 'assets/images/drivers/SP.png' | theme }}" alt="Sergio Perez">Sergio Perez</a></li>
+<li><a class="dropdown-item driver ALF alfa" href="{{ 'drivers' | page }}"><img class="Dlogo" src="{{ 'assets/images/drivers/VB.png' | theme }}" alt="Valtteri Bottas">Valtteri Bottas</a></li>
+<li><a class="dropdown-item driver A alphatauri" href="{{ 'drivers' | page }}"><img class="Dlogo" src="{{ 'assets/images/drivers/YT.png' | theme }}" alt="Yuki Tsunoda">Yuki Tsunoda</a></li>
+<li><a class="dropdown-item driver ALF alfa" href="{{ 'drivers' | page }}"><img class="Dlogo" src="{{ 'assets/images/drivers/ZG.png' | theme }}" alt="Zhou Guanyu">Zhou Guanyu</a></li>
+
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-light" data-bs-dismiss="collapse" href="{{ 'schedule' | page }}">Schedule</a>
+                    </li>
+                </ul>
+
+                <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                    <ul class="navbar-nav">
+                        {% if  _SESSION.admin %}
+                            <li class="nav-item d-flex align-items-center">
+                                <a class="nav-link text-light" href="{{ 'AddNews' | page }}">Add news</a>
+                            </li>
+                            <li class="nav-item d-flex align-items-center">
+                                <a class="nav-link text-light" href="{{ 'AddVideo' | page }}">Add video</a>
+                            </li>
+                        {% endif %}
+
+                        {% if  not _SESSION.username %}
+                            <li class="nav-item d-flex align-items-center">
+                                <a class="nav-link text-light" href="{{ 'login' | page }}">login</a>
+                            </li>
+                        {% endif %}
+
+                        {% if  _SESSION.username %}
+                            <li class="nav-item d-flex align-items-center">
+                                <a class="nav-link text-light" href="includes/logout.php">logout</a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link text-light" href="profile.php"><img src=" {{ 'assets/images/login.png' }} }}" class="login" alt="profile"></a>
+                            </li>
+                        {% endif %}
+
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </nav>
+
+
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha384-XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
