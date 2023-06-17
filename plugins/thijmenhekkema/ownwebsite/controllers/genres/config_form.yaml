@@ -1,0 +1,10 @@
+name: Genres
+form: $/thijmenhekkema/ownwebsite/models/genre/fields.yaml
+modelClass: Thijmenhekkema\Ownwebsite\Models\Genre
+defaultRedirect: thijmenhekkema/ownwebsite/genres
+create:
+    redirect: 'thijmenhekkema/ownwebsite/genres/update/:id'
+    redirectClose: thijmenhekkema/ownwebsite/genres
+update:
+    redirect: thijmenhekkema/ownwebsite/genres
+    redirectClose: thijmenhekkema/ownwebsite/genres

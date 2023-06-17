@@ -1,6 +1,6 @@
-title = "AllNews"
-layout = "default"
 url = "/news/:page?"
+layout = "default"
+title = "AllNews"
 
 [builderList news]
 modelClass = "Thijmenhekkema\Ownwebsite\Models\News"
@@ -11,7 +11,7 @@ noRecordsMessage = "No records found"
 detailsPage = "news-single"
 detailsKeyColumn = "slug"
 detailsUrlParameter = "slug"
-recordsPerPage = 1
+recordsPerPage = 10
 pageNumber = "{{ :page }}"
 ==
 <center>

@@ -5,7 +5,7 @@ use Model;
 /**
  * Model
  */
-class News extends Model
+class Genre extends Model
 {
     use \October\Rain\Database\Traits\Validation;
 
@@ -18,20 +18,12 @@ class News extends Model
     /**
      * @var string table in the database used by the model.
      */
-    public $table = 'thijmenhekkema_ownwebsite_latestnews';
+    public $table = 'thijmenhekkema_ownwebsite_genres';
 
     /**
      * @var array rules for validation.
      */
     public $rules = [
     ];
-
-    /* relations */
-
-    public $attachOne = [
-        'Thumbnail' => 'System\Models\File'
-    ];
-
-
 
 }

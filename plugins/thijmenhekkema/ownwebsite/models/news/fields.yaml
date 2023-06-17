@@ -5,12 +5,6 @@ fields:
         placeholder: Title...
         required: 1
         type: text
-    intro:
-        label: Introduction
-        span: full
-        placeholder: Introduction...
-        required: 1
-        type: text
     description:
         label: Description
         size: ''
@@ -25,3 +19,32 @@ fields:
         placeholder: Date...
         required: 1
         type: datepicker
+    slug:
+        label: Slug
+        span: auto
+        preset:
+            field: title
+            type: slug
+        type: text
+    Thumbnail:
+        label: 'News Thumbnail'
+        span: auto
+        mode: image
+        useCaption: true
+        thumbOptions:
+            mode: crop
+            extension: auto
+        imageWidth: '100'
+        imageHeight: '100'
+        type: fileupload
+    thumbnail_gallery:
+        label: 'Thumbnail Gallery'
+        span: auto
+        mode: image
+        useCaption: true
+        thumbOptions:
+            mode: crop
+            extension: auto
+        imageWidth: '80'
+        imageHeight: '80'
+        type: fileupload

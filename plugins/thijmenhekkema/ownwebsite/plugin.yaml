@@ -4,3 +4,13 @@ plugin:
     author: ThijmenHekkema
     icon: oc-icon-archive
     homepage: ''
+navigation:
+    main-menu-item:
+        label: news
+        url: thijmenhekkema/ownwebsite/news
+        icon: icon-newspaper-o
+        sideMenu:
+            side-menu-item:
+                label: Genres
+                url: thijmenhekkema/ownwebsite/genres
+                icon: icon-tag

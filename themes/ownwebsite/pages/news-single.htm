@@ -1,12 +1,24 @@
-title = "News single"
+url = "/newsItem/:slug"
 layout = "default"
-url = "/news/:id"
+title = "News single"
 
-[builderDetails news]
+[builderDetails]
 modelClass = "Thijmenhekkema\Ownwebsite\Models\News"
-identifierValue = "{{ :id }}"
-modelKeyColumn = "id"
+identifierValue = "{{ :slug }}"
+modelKeyColumn = "slug"
 displayColumn = "title"
 notFoundMessage = "Record not found"
 ==
-{% component "news" %}
+<center>
+    <h1>{{ record.title }}</h1>
+    <p>{{ record.date }}</p>
+    <img src="{{ record.Thumbnail.path }}">
+</center>
+<h3>Description</h3>
+<h4>{{ record.description|raw }}</h4>
+
+
+
+
+
+

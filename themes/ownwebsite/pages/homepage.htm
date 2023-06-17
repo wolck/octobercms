@@ -1,12 +1,18 @@
 url = "/"
+layout = "default"
 title = "Homepage"
+
+[builderList news]
+modelClass = "Thijmenhekkema\Ownwebsite\Models\News"
+scope = "-"
+scopeValue = "{{ :scope }}"
+displayColumn = "title"
+noRecordsMessage = "No records found"
+detailsPage = "news-single"
+detailsKeyColumn = "slug"
+detailsUrlParameter = "slug"
+pageNumber = "{{ :page }}"
 ==
-<link href="{{ 'assets/css/bootstrap.min.css' | theme }}" rel="stylesheet">
-<link href="{{ 'assets/css/style.css' | theme }}" rel="stylesheet">
-
-
-{% partial "navbar" %}
-
 <style>
         .news-image {
             display: flex;
@@ -27,21 +33,12 @@ title = "Homepage"
                 <!-- Latest News -->
                 <h2>Latest News</h2>
                 <div class="news-placeholder">
-                                        {% for row, welk in conn %}  row.id
-                        {{ "<div class='news-item'><div class='news-image'><img src='uploads/" ~ row.image ~ "' alt='News Image' class='img-fluid'></div>
-                            <div class='news-content'>" }}
-                        {{ "<h3 class='news-title'>" ~ row.title ~ "</h3>" }}
-                        {{ "<p class='news-date'>" ~ row.date ~ "</p>" }}
-                        {{ "<p class='news-description news'>" ~ row.intro ~ "</p>" }}
-                        {{ welk }}
-                        {{ "</div></div>" }}
-                    {% endfor %}
-
+{% component "news" %}
                 </div>
                 <div class="video-placeholder">
                                 {# sql2  "SELECT * FROM YTVideo ORDER BY id DESC LIMIT 1"  #}
                 {#  YouTube Video  #}
-                
+
                 {% for row2, welk in conn %}  row2.id
                     {{ "<div class='video-container'><h2>Latest YouTube Video</h2>" }}
                     {{ "<h3 class='news-title'>" ~ row2.Title ~ "</h3>" }}
@@ -53,7 +50,7 @@ title = "Homepage"
                 </div>
             </div>
             <div class="col-md-8">
-                
+
 
                 <!-- Standings -->
                 <h2>Standings</h2>
@@ -78,5 +75,3 @@ title = "Homepage"
             </div>
         </div>
     </div>
-
-    {% partial "footer" %}
