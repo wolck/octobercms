@@ -13,7 +13,12 @@ detailsKeyColumn = "slug"
 detailsUrlParameter = "slug"
 recordsPerPage = 10
 pageNumber = "{{ :page }}"
+
+[session]
+security = "user"
+checkToken = 0
 ==
+{% component 'session' %}
 <center>
 {% component "news" %}
 </center>
