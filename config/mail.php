@@ -39,8 +39,8 @@ return [
             'host' => 'smtp.gmail.com',
             'port' => 587,
             'encryption' => 'tls',
-            'username' => 'thijmenhekkema@gmail.com',
-            'password' => 'Thijmen2006',
+            'username' => 'something@gmail.com',
+            'password' => 'password',
             'timeout' => null,
             'auth_mode' => null,
         ],
@@ -61,7 +61,7 @@ return [
             'transport' => 'sendmail',
             'path' => env('MAIL_SENDMAIL_PATH', '/usr/sbin/sendmail -t -i'),
             'to' => [
-                'address' => 'thijmenhekkema@gmail.com',
+                'address' => 'something@gmail.com',
                 'name' => 'Catch all email'
             ]
         ],
