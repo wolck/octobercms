@@ -1,0 +1,6 @@
+plugin:
+    name: 'thijmenhekkema.contact::lang.plugin.name'
+    description: 'thijmenhekkema.contact::lang.plugin.description'
+    author: ThijmenHekkema
+    icon: oc-icon-adjust
+    homepage: ''

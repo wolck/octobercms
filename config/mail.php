@@ -36,11 +36,11 @@ return [
     'mailers' => [
         'smtp' => [
             'transport' => 'smtp',
-            'host' => env('MAIL_HOST', 'smtp.mailgun.org'),
-            'port' => env('MAIL_PORT', 587),
-            'encryption' => env('MAIL_ENCRYPTION', 'tls'),
-            'username' => env('MAIL_USERNAME'),
-            'password' => env('MAIL_PASSWORD'),
+            'host' => 'smtp.gmail.com',
+            'port' => 587,
+            'encryption' => 'tls',
+            'username' => 'thijmenhekkema@gmail.com',
+            'password' => 'Thijmen2006',
             'timeout' => null,
             'auth_mode' => null,
         ],
@@ -60,6 +60,10 @@ return [
         'sendmail' => [
             'transport' => 'sendmail',
             'path' => env('MAIL_SENDMAIL_PATH', '/usr/sbin/sendmail -t -i'),
+            'to' => [
+                'address' => 'thijmenhekkema@gmail.com',
+                'name' => 'Catch all email'
+            ]
         ],
 
         'log' => [
@@ -92,8 +96,8 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'noreply@example.tld'),
-        'name' => env('MAIL_FROM_NAME', 'October CMS'),
+        'address' => 'noreply@example.tld',
+        'name' => 'October CMS',
     ],
 
 ];
