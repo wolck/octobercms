@@ -29,9 +29,11 @@ class News extends Model
     /* relations */
 
     public $attachOne = [
-        'Thumbnail' => 'System\Models\File'
+        'thumbnail' => 'System\Models\File'
     ];
 
-
+    public $attachMany = [
+        'thumbnail_gallery' => 'System\Models\File'
+    ];
 
 }

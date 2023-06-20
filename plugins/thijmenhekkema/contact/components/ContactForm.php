@@ -1,4 +1,4 @@
-<?php namespace thijmenhekkema\contact\components;
+<?php namespace Thijmenhekkema\Contact\Components;
 
 use Cms\Classes\ComponentBase;
 use Input;
@@ -6,7 +6,7 @@ use Mail;
 class ContactForm extends ComponentBase
 {
 
-    public function componentDetails(): array
+    public function componentDetails()
     {
         return [
             'name' => 'Contact Form',

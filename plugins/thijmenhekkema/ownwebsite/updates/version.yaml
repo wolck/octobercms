@@ -4,8 +4,5 @@ v1.0.2:
     - 'Created table thijmenhekkema_ownwebsite_latestnews'
     - builder_table_create_thijmenhekkema_ownwebsite_latestnews.php
 v1.0.3:
-    - 'Updated table thijmenhekkema_ownwebsite_latestnews'
-    - builder_table_update_thijmenhekkema_ownwebsite_latestnews_4.php
-v1.0.4:
     - 'Created table thijmenhekkema_ownwebsite_genres'
     - builder_table_create_thijmenhekkema_ownwebsite_genres.php

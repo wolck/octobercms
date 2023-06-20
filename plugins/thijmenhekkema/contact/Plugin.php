@@ -24,10 +24,10 @@ class Plugin extends PluginBase
     /**
      * registerComponents used by the frontend.
      */
-    public function registerComponents(): array
+    public function registerComponents()
     {
         return [
-            'thijmenhekkema\Contact\Components\ContactForm' => 'contactform',
+            'Thijmenhekkema\Contact\Components\ContactForm' => 'contactform',
         ];
     }
 

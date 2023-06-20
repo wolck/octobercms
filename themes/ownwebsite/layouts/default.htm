@@ -5,13 +5,14 @@ description = "Default layout"
 security = "all"
 
 ==
-<!DOCTYPE html>
+
 <html>
     <head>
         <link href="{{ 'assets/css/bootstrap.min.css' | theme }}" rel="stylesheet">
         <link href="{{ 'assets/css/style.css' | theme }}" rel="stylesheet">
     </head>
     <body class="{{ 'page-'~this.page.id }}">
+    <script src="{{ 'assets/js/script.js '}}"></script>
 
         <!-- Header -->
         <header id="layout-header">
@@ -27,6 +28,8 @@ security = "all"
         <footer id="layout-footer">
             {% partial 'footer' %}
         </footer>
+
+
 
     </body>
 </html>

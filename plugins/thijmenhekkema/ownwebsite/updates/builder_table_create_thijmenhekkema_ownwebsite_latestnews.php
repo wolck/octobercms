@@ -11,13 +11,12 @@ class BuilderTableCreateThijmenhekkemaOwnwebsiteLatestnews extends Migration
         {
             $table->increments('id');
             $table->string('title', 30);
+            $table->string('slug')->nullable();
             $table->date('date');
-            $table->string('intro', 255);
             $table->text('description');
-            $table->text('image');
         });
     }
-    
+
     public function down()
     {
         Schema::dropIfExists('thijmenhekkema_ownwebsite_latestnews');

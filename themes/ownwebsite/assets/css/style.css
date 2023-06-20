@@ -475,3 +475,24 @@ button:hover .arrow {
 button:hover .arrow:before {
     right: 0;
 }
+
+/*newsItem*/
+
+.thumbnail {
+    width: 800px;
+    height: auto;
+    border-radius: 10px;
+}
+
+.gallery {
+    text-decoration: none;
+    display: flex;
+    flex-direction: row;
+    background-color: lightgrey;
+}
+
+.galleryImage {
+    width: 500px;
+    height: auto;
+    crop: auto;
+}

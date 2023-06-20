@@ -1,9 +1,16 @@
 fields:
     title:
         label: 'News Title'
-        span: full
+        span: left
         placeholder: Title...
         required: 1
+        type: text
+    slug:
+        label: Slug
+        span: right
+        preset:
+            field: title
+            type: slug
         type: text
     description:
         label: Description
@@ -19,23 +26,16 @@ fields:
         placeholder: Date...
         required: 1
         type: datepicker
-    slug:
-        label: Slug
-        span: auto
-        preset:
-            field: title
-            type: slug
-        type: text
-    Thumbnail:
+    thumbnail:
         label: 'News Thumbnail'
-        span: auto
         mode: image
+        imageWidth: '100'
+        imageHeight: '100'
         useCaption: true
         thumbOptions:
             mode: crop
             extension: auto
-        imageWidth: '100'
-        imageHeight: '100'
+        span: left
         type: fileupload
     thumbnail_gallery:
         label: 'Thumbnail Gallery'
