@@ -36,18 +36,47 @@ return [
             'throw' => false,
         ],
 
+//        'uploads' => [
+//            'driver' => 'local',
+//            'root' => storage_path('app/uploads'),
+//            'url' => '/storage/app/uploads',
+//            'visibility' => 'public',
+//            'throw' => false,
+//        ],
+
         'uploads' => [
-            'driver' => 'local',
-            'root' => storage_path('app/uploads'),
-            'url' => '/storage/app/uploads',
+            'driver' => 's3',
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('AWS_DEFAULT_REGION'),
+            'bucket' => env('AWS_BUCKET'),
+            'url' => env('AWS_URL').'/uploads',
+            'endpoint' => env('AWS_ENDPOINT'),
+            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'root' => 'uploads',
             'visibility' => 'public',
             'throw' => false,
         ],
 
+
+//        'media' => [
+//            'driver' => 'local',
+//            'root' => storage_path('app/media'),
+//            'url' => '/storage/app/media',
+//            'visibility' => 'public',
+//            'throw' => false,
+//        ],
+
         'media' => [
-            'driver' => 'local',
-            'root' => storage_path('app/media'),
-            'url' => '/storage/app/media',
+            'driver' => 's3',
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('AWS_DEFAULT_REGION'),
+            'bucket' => env('AWS_BUCKET'),
+            'url' => env('AWS_URL').'/media',
+            'endpoint' => env('AWS_ENDPOINT'),
+            'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false),
+            'root' => 'media',
             'visibility' => 'public',
             'throw' => false,
         ],
