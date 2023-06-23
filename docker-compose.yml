@@ -3,6 +3,12 @@
 ###############################################################################
 version: '3.8'
 services:
+    mailhog:
+        image: mailhog/mailhog:latest
+        ports:
+            - 1025:1025 #smtp port
+            - 8025:8025 #webmail port
+
     redis:
         image: 'redis:alpine'
 
@@ -13,7 +19,7 @@ services:
             - db_data:/application
         environment:
             - MYSQL_ROOT_PASSWORD=root
-            - MYSQL_DATABASE=dfc_local
+            - MYSQL_DATABASE=XXX_local
             - MYSQL_USER=user
             - MYSQL_PASSWORD=pwd
         ports:
