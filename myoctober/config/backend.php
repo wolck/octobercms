@@ -8,11 +8,11 @@ return [
     |--------------------------------------------------------------------------
     |
     | Specifies the URL name used for accessing backend pages.
-    | For example: admin -> http://localhost/admin
+    | For example: admin -> http://localhost/october
     |
     */
 
-    'uri' => env('BACKEND_URI', 'admin'),
+    'uri' => env('BACKEND_URI', 'octoober'),
 
     /*
     |--------------------------------------------------------------------------
