@@ -1,5 +1,5 @@
 {
-    "name": "october/october",
+    "name": "acme/slangentest",
     "description": "Built using October CMS: The Laravel-Based CMS Engineered For Simplicity",
     "type": "october-plugin",
     "homepage": "https://octobercms.com",
@@ -63,6 +63,5 @@
         }
     }
 }
-
 
 
