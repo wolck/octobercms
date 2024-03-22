@@ -1,0 +1,13 @@
+columns:
+    soorten:
+        label: soorten
+        type: text
+        searchable: true
+        sortable: true
+    description:
+        label: description
+        type: text
+    bijzonderheden:
+        label: bijzonderheden
+        type: text
+        searchable: true
