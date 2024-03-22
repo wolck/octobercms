@@ -1,8 +1,8 @@
-oc.Module.register('cms.editor.extension.documentcomponent.base', function() {
+oc.Modules.register('cms.editor.extension.documentcomponent.base', function() {
     'use strict';
 
     const EditorDocumentComponentBase = {
-        extends: oc.Module.import('editor.extension.documentcomponent.base'),
+        extends: oc.Modules.import('editor.extension.documentcomponent.base'),
         data: function() {
             return {
                 toolbarDisabled: false,
@@ -166,7 +166,8 @@ oc.Module.register('cms.editor.extension.documentcomponent.base', function() {
                     this.documentCreatedOrLoaded();
                     this.documentLoaded(result);
                     $.oc.snackbar.show(this.trans('cms::lang.template.reset_from_template_success'));
-                } catch (error) {
+                }
+                catch (error) {
                     let errorText = error.responseText;
                     $.oc.vueComponentHelpers.modalUtils.showAlert(this.trans('editor::lang.common.error'), errorText);
                 }
@@ -186,7 +187,7 @@ oc.Module.register('cms.editor.extension.documentcomponent.base', function() {
                         return component.alias == alias;
                     })
                 ) {
-                    alias = originalAlias + ++counter;
+                    alias = originalAlias + (++counter);
                 }
 
                 componentData.alias = alias;

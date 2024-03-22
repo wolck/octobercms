@@ -1,13 +1,11 @@
 <?php namespace Tailor\Models;
 
-use Model;
 use October\Rain\Argon\Argon;
 use October\Contracts\Element\FormElement;
-use Tailor\Classes\Blueprint\GlobalBlueprint;
 use Tailor\Classes\Scopes\GlobalRecordScope;
+use Tailor\Classes\BlueprintModel;
 use Tailor\Classes\BlueprintIndexer;
 use ApplicationException;
-use SystemException;
 use Exception;
 
 /**
@@ -16,18 +14,12 @@ use Exception;
  * @package october\tailor
  * @author Alexey Bobkov, Samuel Georges
  */
-class GlobalRecord extends Model
+class GlobalRecord extends BlueprintModel
 {
     use \Tailor\Traits\DeferredContentModel;
+    use \Tailor\Models\GlobalRecord\HasGlobalBlueprint;
     use \October\Rain\Database\Traits\Multisite;
     use \October\Rain\Database\Traits\Validation;
-
-    /**
-     * @var array implement behaviors in this model
-     */
-    public $implement = [
-        \Tailor\Behaviors\ContentAttributeModel::class
-    ];
 
     /**
      * @var string table associated with the model
@@ -164,32 +156,6 @@ class GlobalRecord extends Model
                 }
             });
         });
-    }
-
-    /**
-     * getBlueprintAttribute
-     */
-    public function getBlueprintAttribute()
-    {
-        return $this->getBlueprintDefinition();
-    }
-
-    /**
-     * getBlueprintDefinition
-     */
-    public function getBlueprintDefinition(): GlobalBlueprint
-    {
-        $uuid = $this->blueprint_uuid;
-        if (!$uuid) {
-            throw new SystemException('Missing global definition. Call GlobalRecord::inGlobal() to set one.');
-        }
-
-        $blueprint = BlueprintIndexer::instance()->findGlobal($uuid);
-        if (!$blueprint) {
-            throw new SystemException(sprintf('Unable to find global blueprint with ID "%s".', $uuid));
-        }
-
-        return $blueprint;
     }
 
     /**

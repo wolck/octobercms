@@ -1,7 +1,7 @@
-oc.Module.register('backend.vuecomponents.monacoeditor.modeldefinition', function() {
+oc.Modules.register('backend.vuecomponents.monacoeditor.modeldefinition', function() {
     'use strict';
 
-    const ModelReference = oc.Module.import('backend.vuecomponents.monacoeditor.modelreference');
+    const ModelReference = oc.Modules.import('backend.vuecomponents.monacoeditor.modelreference');
     let modelCounter = 0;
 
     class ModelDefinition {
@@ -17,11 +17,10 @@ oc.Module.register('backend.vuecomponents.monacoeditor.modeldefinition', functio
 
         constructor(language, tabTitle, valueHolderObj, valueHolderProperty, iconCssClass, uriString) {
             if (!uriString) {
-                modelCounter++;
-                uriString = 'model-' + modelCounter;
+                uriString = 'model';
             }
 
-            this.uriString = uriString;
+            this.uriString = ++modelCounter + '-' + uriString;
             this.language = language;
             this.tabTitle = tabTitle;
             this.valueHolderObj = valueHolderObj;

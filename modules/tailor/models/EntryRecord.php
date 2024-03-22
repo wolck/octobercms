@@ -1,13 +1,13 @@
 <?php namespace Tailor\Models;
 
 use Site;
-use Model;
 use October\Contracts\Element\ListElement;
 use October\Contracts\Element\FormElement;
 use October\Contracts\Element\FilterElement;
-use Tailor\Classes\Scopes\EntryRecordScope;
+use Tailor\Classes\BlueprintModel;
 use Tailor\Classes\BlueprintIndexer;
-use ApplicationException;
+use Tailor\Classes\Scopes\EntryRecordScope;
+use SystemException;
 
 /**
  * EntryRecord model for content
@@ -15,24 +15,18 @@ use ApplicationException;
  * @package october\tailor
  * @author Alexey Bobkov, Samuel Georges
  */
-class EntryRecord extends Model
+class EntryRecord extends BlueprintModel
 {
     use \Tailor\Traits\DraftableModel;
     use \Tailor\Traits\NestedTreeModel;
     use \Tailor\Traits\VersionableModel;
     use \Tailor\Traits\DeferredContentModel;
+    use \Tailor\Models\EntryRecord\HasDuplication;
     use \Tailor\Models\EntryRecord\HasStatusScopes;
-    use \Tailor\Models\EntryRecord\HasBlueprintTypes;
+    use \Tailor\Models\EntryRecord\HasEntryBlueprint;
     use \October\Rain\Database\Traits\Multisite;
     use \October\Rain\Database\Traits\SoftDelete;
     use \October\Rain\Database\Traits\Validation;
-
-    /**
-     * @var array implement behaviors in this model
-     */
-    public $implement = [
-        \Tailor\Behaviors\ContentTableModel::class
-    ];
 
     /**
      * @var array rules for validation
@@ -133,7 +127,7 @@ class EntryRecord extends Model
     {
         $entryName = $this->getContentFieldsetDefinition()->name ?? '';
 
-        $host->addFormField('title', 'Title')->autoFocus()->cssClass('primary-title-field')->placeholder(__("New :name Entry", ['name' => __($entryName)]));
+        $host->addFormField('title', 'Title')->autoFocus()->cssClass('primary-title-field')->placeholder(__("Create :name Entry", ['name' => __($entryName)]));
         $this->applyCoreFieldModifiers($host);
     }
 
@@ -169,6 +163,8 @@ class EntryRecord extends Model
     protected function applyCoreFieldModifiers(FormElement $host)
     {
         $toTransfer = [
+            'scope',
+            'column',
             'default',
             'label',
             'comment',
@@ -286,7 +282,7 @@ class EntryRecord extends Model
     {
         $blueprint = BlueprintIndexer::instance()->findSectionByHandle($handle);
         if (!$blueprint) {
-            throw new ApplicationException("Section handle [{$handle}] not found");
+            throw new SystemException("Section handle [{$handle}] not found");
         }
 
         return static::inSectionUuid($blueprint->uuid);
@@ -311,7 +307,7 @@ class EntryRecord extends Model
     {
         $blueprint = BlueprintIndexer::instance()->findSectionByHandle($handle);
         if (!$blueprint) {
-            throw new ApplicationException("Section handle [{$handle}] not found");
+            throw new SystemException("Section handle [{$handle}] not found");
         }
 
         self::extendInSectionUuid($blueprint->uuid, $callback);
@@ -342,14 +338,6 @@ class EntryRecord extends Model
         }
 
         return $query->applyPublishedStatus();
-    }
-
-    /**
-     * getBlueprintAttribute
-     */
-    public function getBlueprintAttribute()
-    {
-        return $this->getBlueprintDefinition();
     }
 
     /**
@@ -413,7 +401,7 @@ class EntryRecord extends Model
     {
         $blueprint = BlueprintIndexer::instance()->findSectionByHandle($handle);
         if (!$blueprint) {
-            throw new ApplicationException("Section handle [{$handle}] not found");
+            throw new SystemException("Section handle [{$handle}] not found");
         }
 
         return static::findSingleForSectionUuid($blueprint->uuid);
@@ -495,5 +483,13 @@ class EntryRecord extends Model
     public function isMultisiteSyncEnabled()
     {
         return $this->useMultisiteSync();
+    }
+
+    /**
+     * getMultisiteConfig returns an sync option configured for multisite
+     */
+    public function getMultisiteConfig($key, $default = null)
+    {
+        return $this->getBlueprintDefinition()->getMultisiteConfig($key, $default);
     }
 }

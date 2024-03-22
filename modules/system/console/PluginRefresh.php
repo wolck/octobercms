@@ -4,6 +4,7 @@ use App;
 use Illuminate\Console\Command;
 use System\Classes\UpdateManager;
 use System\Classes\PluginManager;
+use October\Rain\Database\Updater;
 
 /**
  * PluginRefresh refreshes a plugin or the app directory.
@@ -24,7 +25,8 @@ class PluginRefresh extends Command
     protected $signature = 'plugin:refresh
         {namespace : App or Plugin Namespace. <info>(eg: Acme.Blog)</info>}
         {--f|force : Force the operation to run.}
-        {--rollback=false : Specify a version to rollback to, otherwise rollback to the beginning.}';
+        {--rollback=false : Specify a version to rollback to, otherwise rollback to the beginning.}
+        {--skip-errors : Continue with migration through exceptions.}';
 
     /**
      * @var string description of the console command
@@ -36,11 +38,20 @@ class PluginRefresh extends Command
      */
     public function handle()
     {
+        $skipErrors = $this->option('skip-errors');
+        if ($skipErrors) {
+            Updater::skipErrors();
+        }
+
         if ($this->isAppNamespace()) {
             $this->handleApp();
         }
         else {
             $this->handlePlugin();
+        }
+
+        if ($skipErrors) {
+            Updater::skipErrors(false);
         }
     }
 
@@ -66,19 +77,10 @@ class PluginRefresh extends Command
 
         $this->components->info('Rolling back app migrations.');
 
-        // This method attempts to roll back everything, as per Laravel monolith logic,
-        // so silence the command to ignore "Migration not found" errors.
-        $migrator = App::make('migrator');
-
-        // @todo Potential issue here since a migration file collision could unintentionally
-        // rollback a core module migration. Ideally the migration table needs to be extended
-        // to include a module/namespace column to correctly isolate migrations from each other.
-        // $migrator->setOutput($this->output);
-
-        $migrator->reset((array) app_path('database/migrations'));
+        $manager = UpdateManager::instance()->setNotesCommand($this);
+        $manager->rollbackApp();
 
         if (!$this->isRollback()) {
-            $manager = UpdateManager::instance()->setNotesCommand($this);
             $manager->migrateApp();
             $manager->seedApp();
         }
@@ -97,7 +99,8 @@ class PluginRefresh extends Command
         }
 
         $message = "This will DESTROY database tables for plugin [{$name}].";
-        if ($toVersion = $this->option('rollback')) {
+        if ($this->isRollback()) {
+            $toVersion = $this->option('rollback');
             $message = "This will DESTROY database tables for plugin [{$name}] up to version [{$toVersion}].";
         }
 
@@ -114,7 +117,7 @@ class PluginRefresh extends Command
     }
 
     /**
-     * handleRollback performs a database rollback
+     * handleRefresh performs a database rollback
      */
     protected function handleRefresh($name)
     {
@@ -124,7 +127,7 @@ class PluginRefresh extends Command
 
         // Rerun migration
         $this->line('Reinstalling plugin...');
-        $manager->updatePlugin($name);
+        $manager->migratePlugin($name);
     }
 
     /**
@@ -148,7 +151,7 @@ class PluginRefresh extends Command
      */
     protected function getDefaultConfirmCallback()
     {
-        return function () {
+        return function() {
             return true;
         };
     }

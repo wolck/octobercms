@@ -11,6 +11,7 @@
 @import "fileupload.image.less";
 @import "fileupload.file.less";
 @import "fileupload.control-ui.less";
+@import "fileupload.popup.less";
 
 .uploader-small-loader() {
     width: 20px;
@@ -102,13 +103,21 @@
             margin-bottom: 8px;
         }
 
-        p.description:empty {
-            display: none;
+        h4.filename {
+            font-weight: 600;
+            margin-top: -2px;
         }
 
-        h4.filename {
-            font-weight: 500;
-            margin-top: -2px;
+        p.description {
+            margin-top: -4px;
+            &:empty {
+                display: none;
+            }
+        }
+
+        p.size {
+            font-size: 0.875em;
+            color: @secondary-color;
         }
 
         &.upload-object-image {
@@ -296,52 +305,5 @@
                 }
             }
         }
-    }
-}
-
-//
-// Config form
-//
-
-.fileupload-config-form {
-    .fileupload-url-button{
-        padding-left: 0;
-         > i {
-            color: #666;
-        }
-    }
-
-    .file-upload-modal-image-header {
-        // Photoshop transparent background
-        // Based on: http://lea.verou.me/css3patterns/#checkerboard
-        background-color: #FEFEFE;
-        background-image: -webkit-linear-gradient(45deg, #CBCBCB 25%, transparent 25%, transparent 75%, #CBCBCB 75%, #CBCBCB), -webkit-linear-gradient(45deg, #CBCBCB 25%, transparent 25%, transparent 75%, #CBCBCB 75%, #CBCBCB);
-        background-image: -moz-linear-gradient(45deg, #CBCBCB 25%, transparent 25%, transparent 75%, #CBCBCB 75%, #CBCBCB), -moz-linear-gradient(45deg, #CBCBCB 25%, transparent 25%, transparent 75%, #CBCBCB 75%, #CBCBCB);
-        background-image: -o-linear-gradient(45deg, #CBCBCB 25%, transparent 25%, transparent 75%, #CBCBCB 75%, #CBCBCB), -o-linear-gradient(45deg, #CBCBCB 25%, transparent 25%, transparent 75%, #CBCBCB 75%, #CBCBCB);
-        background-image: -ms-linear-gradient(45deg, #CBCBCB 25%, transparent 25%, transparent 75%, #CBCBCB 75%, #CBCBCB), -ms-linear-gradient(45deg, #CBCBCB 25%, transparent 25%, transparent 75%, #CBCBCB 75%, #CBCBCB);
-        background-image: linear-gradient(45deg, #CBCBCB 25%, transparent 25%, transparent 75%, #CBCBCB 75%, #CBCBCB), linear-gradient(45deg, #CBCBCB 25%, transparent 25%, transparent 75%, #CBCBCB 75%, #CBCBCB);
-        -webkit-background-size: 20px 20px;
-        -moz-background-size: 20px 20px;
-        background-size: 20px 20px;
-        background-position: 0 0, 10px 10px;
-
-
-        &, img {
-            .border-top-radius(2px);
-        }
-
-        .btn-close {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            height: 24px;
-            width: 22px;
-            border-radius: 100px;
-            background-color: rgba(255, 255, 255, 50%);
-        }
-    }
-
-    .file-upload-modal-image-header + .modal-body {
-        padding-top: @padding-standard;
     }
 }

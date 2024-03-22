@@ -74,7 +74,7 @@ abstract class ImportModel extends Model
         $path = $importFilePath ?: $this->getImportFilePath($sessionKey);
 
         if (!$path) {
-            throw new ApplicationException("The import file was not found using seesion key [$sessionKey]");
+            throw new ApplicationException("The import file was not found using session key [$sessionKey]");
         }
 
         $data = $this->processImportData($path, $matches, $options);
@@ -127,13 +127,13 @@ abstract class ImportModel extends Model
      * decodeArrayValue prepares an array object for the file type.
      * @return array
      */
-    protected function decodeArrayValue($value, $delimeter = '|')
+    protected function decodeArrayValue($value, $delimiter = '|')
     {
         if ($this->file_format === 'json') {
             return $this->decodeArrayValueForJson($value);
         }
         else {
-            return $this->decodeArrayValueForCsv($value, $delimeter);
+            return $this->decodeArrayValueForCsv($value, $delimiter);
         }
     }
 

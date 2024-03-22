@@ -71,12 +71,12 @@ abstract class ExportModel extends Model
     public function download($name, $outputName = null)
     {
         if (!preg_match('/^oc[0-9a-z]*$/i', $name)) {
-            throw new ApplicationException(Lang::get('backend::lang.import_export.file_not_found_error'));
+            throw new ApplicationException(__("File not found"));
         }
 
         $csvPath = $this->getTemporaryExportPath($name);
         if (!file_exists($csvPath)) {
-            throw new ApplicationException(Lang::get('backend::lang.import_export.file_not_found_error'));
+            throw new ApplicationException(__("File not found"));
         }
 
         $contentType = ends_with($name, 'xjson')
@@ -108,7 +108,7 @@ abstract class ExportModel extends Model
     {
         // Validate
         if (!$results) {
-            throw new ApplicationException(Lang::get('backend::lang.import_export.empty_error'));
+            throw new ApplicationException(__("There was no data supplied to export"));
         }
 
         // Extend columns
@@ -186,7 +186,7 @@ abstract class ExportModel extends Model
      * encodeArrayValue prepares an array object for the file type.
      * @return mixed
      */
-    protected function encodeArrayValue($data, $delimeter = '|')
+    protected function encodeArrayValue($data, $delimiter = '|')
     {
         if (!is_array($data)) {
             return '';
@@ -196,7 +196,7 @@ abstract class ExportModel extends Model
             return $this->encodeArrayValueForJson($data);
         }
         else {
-            return $this->encodeArrayValueForCsv($data, $delimeter);
+            return $this->encodeArrayValueForCsv($data, $delimiter);
         }
     }
 }

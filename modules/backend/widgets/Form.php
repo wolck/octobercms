@@ -26,7 +26,7 @@ class Form extends WidgetBase implements FormElement
     use \Backend\Traits\FormModelSaver;
 
     //
-    // Configurable properties
+    // Configurable Properties
     //
 
     /**
@@ -62,7 +62,7 @@ class Form extends WidgetBase implements FormElement
 
     /**
      * @var string arrayName if the field element names should be contained in an array.
-     * Eg: <input name="nameArray[fieldName]" />
+     * Eg: `<input name="nameArray[fieldName]" />`
      */
     public $arrayName;
 
@@ -72,8 +72,13 @@ class Form extends WidgetBase implements FormElement
      */
     public $isNested = false;
 
+    /**
+     * @var bool useModelFields requests form fields from the supplied model.
+     */
+    public $useModelFields = true;
+
     //
-    // Object properties
+    // Object Properties
     //
 
     /**
@@ -82,18 +87,18 @@ class Form extends WidgetBase implements FormElement
     protected $defaultAlias = 'form';
 
     /**
-     * @var boolean Determines if field definitions have been created.
+     * @var boolean fieldsDefined determines if field definitions have been created.
      */
     protected $fieldsDefined = false;
 
     /**
-     * @var array Collection of all fields used in this form.
+     * @var array allFields used in this form.
      * @see \Backend\Classes\FormField
      */
     protected $allFields = [];
 
     /**
-     * @var object Collection of tab sections used in this form.
+     * @var object allTabs sections used in this form.
      * @see \Backend\Classes\FormTabs
      */
     protected $allTabs = [
@@ -118,9 +123,24 @@ class Form extends WidgetBase implements FormElement
     public $sessionKeySuffix;
 
     /**
-     * @var bool Render this form with uneditable preview data.
+     * @var string|null parentFieldName if this form is nested in a field.
+     */
+    public $parentFieldName = null;
+
+    /**
+     * @var bool previewMode renders this form with uneditable preview data.
      */
     public $previewMode = false;
+
+    /**
+     * @var bool surveyMode renders this form using a survey layout (no tabs)
+     */
+    public $surveyMode = false;
+
+    /**
+     * @var bool horizontalMode renders this form using a horizontal layout
+     */
+    public $horizontalMode = false;
 
     /**
      * @inheritDoc
@@ -136,7 +156,12 @@ class Form extends WidgetBase implements FormElement
             'context',
             'arrayName',
             'isNested',
+            'useModelFields',
             'sessionKeySuffix',
+            'parentFieldName',
+            'previewMode',
+            'surveyMode',
+            'horizontalMode',
         ]);
 
         $this->initFormWidgetsConcern();
@@ -189,13 +214,12 @@ class Form extends WidgetBase implements FormElement
             $this->previewMode = $options['preview'];
         }
 
-        if (!isset($options['useContainer'])) {
-            $options['useContainer'] = true;
+        if (isset($options['surveyMode'])) {
+            $this->surveyMode = $options['surveyMode'];
         }
 
-        if (!isset($options['section'])) {
-            $options['section'] = null;
-        }
+        $options['useContainer'] ??= true;
+        $options['section'] ??= null;
 
         $extraVars = [];
         $targetPartial = 'form';
@@ -229,6 +253,7 @@ class Form extends WidgetBase implements FormElement
 
     /**
      * renderFields renders the specified fields.
+     * @deprecated use `render(['primaryTab' => 'My Tab'])`
      */
     public function renderFields(array $fields): string
     {
@@ -237,10 +262,32 @@ class Form extends WidgetBase implements FormElement
 
     /**
      * renderTabSection renders the specified tabs.
+     * @deprecated use `render(['section' => 'outside', 'useContainer' => false])`
      */
     public function renderTabSection($tabs): string
     {
         return $this->makePartial('section', ['tabs' => $tabs]);
+    }
+
+    /**
+     * renderField
+     */
+    public function renderTab($tabName, $options = [])
+    {
+        $this->defineFormFields();
+        $this->prepareVars();
+
+        $options['secondaryTab'] ??= false;
+
+        // Render a secondary tab
+        if ($options['secondaryTab']) {
+            $extraVars['fields'] = array_get($this->allTabs->secondary->getFields(), $tabName, []);
+        }
+        else {
+            $extraVars['fields'] = array_get($this->allTabs->primary->getFields(), $tabName, []);
+        }
+
+        return $this->makePartial('form_fields', $extraVars);
     }
 
     /**
@@ -334,9 +381,7 @@ class Form extends WidgetBase implements FormElement
     }
 
     /**
-     * Prepares the form data
-     *
-     * @return void
+     * prepareVars prepares the form data
      */
     protected function prepareVars()
     {
@@ -516,7 +561,6 @@ class Form extends WidgetBase implements FormElement
             $target => $this->makePartial('form_fields', ['fields' => $fields]),
         ];
     }
-
 
     /**
      * defineFormFields creates a flat array of form fields from the configuration
@@ -713,7 +757,7 @@ class Form extends WidgetBase implements FormElement
      */
     protected function addFieldsFromModel(string $addToArea = null): void
     {
-        if ($this->isNested || !$this->model) {
+        if (!$this->useModelFields || $this->isNested || !$this->model) {
             return;
         }
 
@@ -740,7 +784,7 @@ class Form extends WidgetBase implements FormElement
     }
 
     /**
-     * addFields programatically, used internally and for extensibility
+     * addFields programmatically, used internally and for extensibility
      * @param array $fields
      * @param string $addToArea
      */
@@ -829,7 +873,7 @@ class Form extends WidgetBase implements FormElement
     }
 
     /**
-     * removeField programatically
+     * removeField programmatically
      */
     public function removeField($name): bool
     {
@@ -849,7 +893,7 @@ class Form extends WidgetBase implements FormElement
     }
 
     /**
-     * removeTab programatically remove all fields belonging to a tab
+     * removeTab programmatically remove all fields belonging to a tab
      * @param string $name
      */
     public function removeTab($name)
@@ -1327,7 +1371,7 @@ class Form extends WidgetBase implements FormElement
                 $array = &$array[$part];
             }
             else {
-                continue;
+                return;
             }
         }
 

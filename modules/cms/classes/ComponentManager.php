@@ -10,20 +10,11 @@ use SystemException;
 /**
  * ComponentManager
  *
- * @method static ComponentManager instance()
- *
  * @package october\cms
  * @author Alexey Bobkov, Samuel Georges
  */
 class ComponentManager
 {
-    use \October\Rain\Support\Traits\Singleton;
-
-    /**
-     * @var array callbacks for registration.
-     */
-    protected $callbacks = [];
-
     /**
      * @var array codeMap where keys are codes and values are class names.
      */
@@ -50,46 +41,11 @@ class ComponentManager
     protected $detailsCache;
 
     /**
-     * loadComponents scans each plugin an loads it's components.
-     * @return void
+     * instance creates a new instance of this singleton
      */
-    protected function loadComponents()
+    public static function instance(): static
     {
-        // Load external components
-        foreach ($this->callbacks as $callback) {
-            $callback($this);
-        }
-
-        // Load module items
-        foreach (System::listModules() as $module) {
-            if ($provider = App::getProvider($module . '\\ServiceProvider')) {
-                $this->loadComponentsFromArray($provider->registerComponents(), $provider);
-            }
-        }
-
-        // Load plugin components
-        foreach (PluginManager::instance()->getPlugins() as $plugin) {
-            $this->loadComponentsFromArray($plugin->registerComponents(), $plugin);
-        }
-
-        // Load app items
-        if ($app = App::getProvider(\App\Provider::class)) {
-            $this->loadComponentsFromArray($app->registerComponents(), $app);
-        }
-    }
-
-    /**
-     * loadComponentsFromArray helper
-     */
-    protected function loadComponentsFromArray($items, $owner)
-    {
-        if (!is_array($items)) {
-            return;
-        }
-
-        foreach ($items as $className => $code) {
-            $this->registerComponent($className, $code, $owner);
-        }
+        return App::make('cms.components');
     }
 
     /**
@@ -99,11 +55,64 @@ class ComponentManager
      *         $manager->registerComponent(\October\Demo\Components\Test::class, 'testComponent');
      *     });
      *
-     * @return array Array values are class names.
+     * @deprecated this will be removed in a later version
+     * @param callable $callback A callable function.
      */
     public function registerComponents(callable $definitions)
     {
-        $this->callbacks[] = $definitions;
+        App::extendInstance('cms.components', $definitions);
+    }
+
+    /**
+     * loadComponents scans each plugin an loads it's components.
+     */
+    protected function loadComponents()
+    {
+        // Load module items
+        foreach (System::listModules() as $module) {
+            if ($provider = App::getProvider($module . '\\ServiceProvider')) {
+                $this->loadComponentsFromArray($provider->registerComponents(), $provider);
+
+                // @deprecated in v3.5+ this is part of the OctoberPackage contract
+                if (method_exists($provider, 'registerPageSnippets')) {
+                    $this->loadComponentsFromArray($provider->registerPageSnippets());
+                }
+            }
+        }
+
+        // Load plugin components
+        foreach (PluginManager::instance()->getPlugins() as $plugin) {
+            $this->loadComponentsFromArray($plugin->registerComponents(), $plugin);
+
+            // @deprecated in v3.5+ this is part of the OctoberPackage contract
+            if (method_exists($plugin, 'registerPageSnippets')) {
+                $this->loadComponentsFromArray($plugin->registerPageSnippets());
+            }
+        }
+
+        // Load app items
+        if ($app = App::getProvider(\App\Provider::class)) {
+            $this->loadComponentsFromArray($app->registerComponents(), $app);
+
+            // @deprecated in v3.5+ this is part of the OctoberPackage contract
+            if (method_exists($app, 'registerPageSnippets')) {
+                $this->loadComponentsFromArray($app->registerPageSnippets());
+            }
+        }
+    }
+
+    /**
+     * loadComponentsFromArray helper
+     */
+    protected function loadComponentsFromArray($items, $owner = null)
+    {
+        if (!is_array($items)) {
+            return;
+        }
+
+        foreach ($items as $className => $code) {
+            $this->registerComponent($className, $code, $owner);
+        }
     }
 
     /**

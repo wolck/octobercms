@@ -1,6 +1,7 @@
 <?php namespace Cms\Classes;
 
 use Str;
+use File;
 use Lang;
 use Config;
 use October\Rain\Extension\Extendable;
@@ -9,6 +10,8 @@ use BadMethodCallException;
 
 /**
  * ComponentBase class
+ *
+ * @mixin \Cms\Classes\Controller
  *
  * @package october\cms
  * @author Alexey Bobkov, Samuel Georges
@@ -21,62 +24,67 @@ abstract class ComponentBase extends Extendable implements CallsAnyMethod
     use \System\Traits\PropertyContainer;
 
     /**
-     * @var string A unique identifier for this component.
+     * @var string id is a unique identifier for this component.
      */
     public $id;
 
     /**
-     * @var string Alias used for this component.
+     * @var string alias used for this component.
      */
     public $alias;
 
     /**
-     * @var string Component class name or class alias used in the component declaration in a template.
+     * @var string name as a class name or class alias used in the component declaration in a template.
      */
     public $name;
 
     /**
-     * @var boolean Determines whether the component is hidden from the back-end UI.
+     * @var boolean isHidden determines whether the component is hidden from the backend UI.
      */
     public $isHidden = false;
 
     /**
-     * @var string Icon of the plugin that defines the component.
+     * @var string pluginIcon of the plugin that defines the component.
      * This field is used by the CMS internally.
      */
     public $pluginIcon;
 
     /**
-     * @var string Component CSS class name for the back-end page/layout component list.
+     * @var string componentCssClass name for the backend page/layout component list.
      * This field is used by the CMS internally.
      */
     public $componentCssClass;
 
     /**
-     * @var boolean Determines whether Inspector can be used with the component.
+     * @var boolean inspectorEnabled determines whether Inspector can be used with the component.
      * This field is used by the CMS internally.
      */
     public $inspectorEnabled = true;
 
     /**
-     * @var string Specifies the component directory name.
+     * @var string dirName specifies the component directory name.
      */
     protected $dirName;
 
     /**
-     * @var \Cms\Classes\Controller Controller object.
+     * @var \Cms\Classes\Controller controller object.
      */
     protected $controller;
 
     /**
-     * @var \Cms\Classes\PageCode Page object object.
+     * @var \Cms\Classes\PageCode page object object.
      */
     protected $page;
 
     /**
-     * @var array A collection of external property names used by this component.
+     * @var array externalPropertyNames is a collection of external property names used by this component.
      */
     protected $externalPropertyNames = [];
+
+    /**
+     * @var string componentGetPathCache
+     */
+    protected $componentGetPathCache;
 
     /**
      * __construct the component, which takes in the page or layout code section object
@@ -94,8 +102,10 @@ abstract class ComponentBase extends Extendable implements CallsAnyMethod
         $this->properties = $this->validateProperties($properties);
 
         $className = Str::normalizeClassName(get_called_class());
-        $this->dirName = '/'.strtolower(str_replace('\\', '/', $className));
-        $this->assetPath = $this->getComponentAssetPath();
+        $this->dirName = strtolower(str_replace('\\', '/', $className));
+
+        $this->assetPath = $this->getComponentAssetRelativePath();
+        $this->assetUrlPath = $this->getComponentAssetUrlPath();
 
         parent::__construct();
     }
@@ -118,7 +128,13 @@ abstract class ComponentBase extends Extendable implements CallsAnyMethod
      */
     public function getPath()
     {
-        return plugins_path() . $this->dirName;
+        if ($this->componentGetPathCache !== null) {
+            return $this->componentGetPathCache;
+        }
+
+        return $this->componentGetPathCache = strpos(static::class, 'App\\') === 0
+            ? base_path($this->dirName)
+            : plugins_path($this->dirName);
     }
 
     /**
@@ -144,7 +160,7 @@ abstract class ComponentBase extends Extendable implements CallsAnyMethod
     }
 
     /**
-     * Renders a requested partial in context of this component,
+     * renderPartial renders a requested partial in context of this component,
      * see Cms\Classes\Controller@renderPartial for usage.
      */
     public function renderPartial()
@@ -156,7 +172,25 @@ abstract class ComponentBase extends Extendable implements CallsAnyMethod
     }
 
     /**
-     * Executes the event cycle when running an AJAX handler.
+     * runLifeCycle executes the life cycle for the component.
+     */
+    public function runLifeCycle()
+    {
+        if ($event = $this->fireEvent('component.beforeRun', [], true)) {
+            return $event;
+        }
+
+        if ($result = $this->onRun()) {
+            return $result;
+        }
+
+        if ($event = $this->fireEvent('component.run', [], true)) {
+            return $event;
+        }
+    }
+
+    /**
+     * runAjaxHandler executes the event cycle when running an AJAX handler.
      * @return boolean Returns true if the handler was found. Returns false otherwise.
      */
     public function runAjaxHandler($handler)
@@ -212,7 +246,7 @@ abstract class ComponentBase extends Extendable implements CallsAnyMethod
          *
          * Or
          *
-         *     $this->controller->bindEvent('componenet.beforeRunAjaxHandler', function ((string) $handler, (mixed) $result) {
+         *     $this->controller->bindEvent('component.beforeRunAjaxHandler', function ((string) $handler, (mixed) $result) {
          *         if (in_array($handler, $interceptHandlers)) {
          *             return 'request has been intercepted, original response: ' . json_encode($result);
          *         }
@@ -252,7 +286,7 @@ abstract class ComponentBase extends Extendable implements CallsAnyMethod
      */
 
     /**
-     * Sets names used by external properties.
+     * setExternalPropertyNames sets names used by external properties.
      * @param array $names The key should be the property name,
      *                     the value should be the external property name.
      * @return void
@@ -263,7 +297,7 @@ abstract class ComponentBase extends Extendable implements CallsAnyMethod
     }
 
     /**
-     * Sets an external property name.
+     * setExternalPropertyName sets an external property name.
      * @param string $name Property name
      * @param string $extName External property name
      * @return void
@@ -274,9 +308,9 @@ abstract class ComponentBase extends Extendable implements CallsAnyMethod
     }
 
     /**
-     * Returns the external property name when the property value is an external property reference.
-     * Otherwise the default value specified is returned.
-     * @param string $name The property name
+     * propertyName returns the external property name when the property value is an external
+     * property reference. Otherwise the default value specified is returned.
+     * @param string $name
      * @param mixed $default
      * @return string
      */
@@ -286,9 +320,9 @@ abstract class ComponentBase extends Extendable implements CallsAnyMethod
     }
 
     /**
-     * Returns the external property name when the property value is a routing parameter reference.
-     * Otherwise the default value specified is returned.
-     * @param string $name The property name
+     * paramName returns the external property name when the property value is a routing
+     * parameter reference. Otherwise the default value specified is returned.
+     * @param string $name
      * @param mixed $default
      * @return string
      */
@@ -314,7 +348,7 @@ abstract class ComponentBase extends Extendable implements CallsAnyMethod
     //
 
     /**
-     * Dynamically handle calls into the controller instance.
+     * __call dynamically handles calls into the controller instance.
      * @param string $method
      * @param array $parameters
      * @return mixed
@@ -338,7 +372,7 @@ abstract class ComponentBase extends Extendable implements CallsAnyMethod
     }
 
     /**
-     * Returns the component's alias, used by __SELF__
+     * __toString returns the component's alias, used by __SELF__
      */
     public function __toString()
     {
@@ -350,16 +384,26 @@ abstract class ComponentBase extends Extendable implements CallsAnyMethod
     //
 
     /**
-     * getComponentAssetPath returns the public directory for the component assets
+     * getComponentAssetRelativePath
      */
-    protected function getComponentAssetPath(): string
+    protected function getComponentAssetRelativePath(): string
     {
-        $assetUrl = Config::get('system.plugins_asset_url');
+        $dirName = dirname(dirname($this->dirName));
 
-        if (!$assetUrl) {
-            $assetUrl = Config::get('app.asset_url').'/plugins';
-        }
+        return "/plugins/{$dirName}";
+    }
 
-        return $assetUrl . dirname(dirname($this->dirName));
+    /**
+     * getComponentAssetUrlPath returns the public directory for the component assets
+     */
+    protected function getComponentAssetUrlPath(): string
+    {
+        // Configuration for theme asset location, default to relative path
+        $assetUrl = (string) Config::get('system.plugins_asset_url') ?: '/plugins';
+
+        // Build path
+        $dirName = dirname(dirname($this->dirName));
+
+        return $assetUrl . '/' . $dirName;
     }
 }

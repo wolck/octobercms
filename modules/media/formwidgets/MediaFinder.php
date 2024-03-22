@@ -20,7 +20,7 @@ use Exception;
 class MediaFinder extends FormWidgetBase
 {
     //
-    // Configurable properties
+    // Configurable Properties
     //
 
     /**
@@ -68,7 +68,7 @@ class MediaFinder extends FormWidgetBase
     public $externalToolbarEventBus = null;
 
     //
-    // Object properties
+    // Object Properties
     //
 
     /**
@@ -87,8 +87,7 @@ class MediaFinder extends FormWidgetBase
             'imageHeight',
             'maxItems',
             'thumbOptions',
-            'externalToolbarAppState',
-            'externalToolbarEventBus'
+            'externalToolbarAppState'
         ]);
 
         if ($this->formField->disabled || $this->formField->readOnly) {
@@ -135,7 +134,6 @@ class MediaFinder extends FormWidgetBase
         $this->vars['imageWidth'] = $this->imageWidth;
         $this->vars['imageHeight'] = $this->imageHeight;
         $this->vars['externalToolbarAppState'] = $this->externalToolbarAppState;
-        $this->vars['externalToolbarEventBus'] = $this->externalToolbarEventBus;
     }
 
     /**

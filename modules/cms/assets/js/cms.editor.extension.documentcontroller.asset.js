@@ -1,10 +1,10 @@
-oc.Module.register('cms.editor.extension.documentcontroller.asset', function() {
+oc.Modules.register('cms.editor.extension.documentcontroller.asset', function() {
     'use strict';
 
-    const DocumentControllerBase = oc.Module.import('editor.extension.documentcontroller.base');
+    const DocumentControllerBase = oc.Modules.import('editor.extension.documentcontroller.base');
     const treeviewUtils = $.oc.vueComponentHelpers.treeviewUtils;
-    const EditorCommand = oc.Module.import('editor.command');
-    const FileSystemFunctions = oc.Module.import('editor.extension.filesystemfunctions');
+    const EditorCommand = oc.Modules.import('editor.command');
+    const FileSystemFunctions = oc.Modules.import('editor.extension.filesystemfunctions');
 
     class DocumentControllerAsset extends DocumentControllerBase {
         get documentType() {
@@ -44,7 +44,7 @@ oc.Module.register('cms.editor.extension.documentcontroller.asset', function() {
         }
 
         getNavigatorContextMenuItems(commandObj, payload) {
-            const DocumentUri = oc.Module.import('editor.documenturi');
+            const DocumentUri = oc.Modules.import('editor.documenturi');
             const uri = DocumentUri.parse(payload.nodeData.uniqueKey);
             const parentPath = payload.nodeData.userData.path;
 
@@ -55,7 +55,7 @@ oc.Module.register('cms.editor.extension.documentcontroller.asset', function() {
             if (payload.nodeData.userData.isFolder) {
                 payload.menuItems.push({
                     type: 'text',
-                    icon: 'octo-icon-create',
+                    icon: 'icon-create',
                     command: new EditorCommand('cms:create-document@' + this.documentType, {
                         path: parentPath
                     }),
@@ -64,7 +64,7 @@ oc.Module.register('cms.editor.extension.documentcontroller.asset', function() {
 
                 payload.menuItems.push({
                     type: 'text',
-                    icon: 'octo-icon-upload',
+                    icon: 'icon-upload',
                     command: new EditorCommand('cms:cms-asset-upload@' + this.documentType, {
                         path: parentPath
                     }),
@@ -73,7 +73,7 @@ oc.Module.register('cms.editor.extension.documentcontroller.asset', function() {
 
                 payload.menuItems.push({
                     type: 'text',
-                    icon: 'octo-icon-folder',
+                    icon: 'icon-folder',
                     command: 'cms:cms-asset-create-directory@' + parentPath,
                     label: this.trans('cms::lang.asset.create_directory')
                 });
@@ -86,7 +86,7 @@ oc.Module.register('cms.editor.extension.documentcontroller.asset', function() {
                 if (!payload.nodeData.userData.isEditable) {
                     payload.menuItems.push({
                         type: 'text',
-                        icon: 'octo-icon-fullscreen',
+                        icon: 'icon-fullscreen',
                         command: new EditorCommand('cms:cms-asset-open@' + parentPath, {
                             url: payload.nodeData.userData.url
                         }),
@@ -97,7 +97,7 @@ oc.Module.register('cms.editor.extension.documentcontroller.asset', function() {
 
             payload.menuItems.push({
                 type: 'text',
-                icon: 'octo-icon-terminal',
+                icon: 'icon-terminal',
                 command: new EditorCommand('cms:cms-asset-rename@' + parentPath, {
                     fileName: payload.nodeData.userData.filename
                 }),
@@ -106,7 +106,7 @@ oc.Module.register('cms.editor.extension.documentcontroller.asset', function() {
 
             payload.menuItems.push({
                 type: 'text',
-                icon: 'octo-icon-delete',
+                icon: 'icon-delete',
                 command: new EditorCommand('cms:cms-asset-delete@' + parentPath, {
                     itemsDetails: payload.itemsDetails
                 }),

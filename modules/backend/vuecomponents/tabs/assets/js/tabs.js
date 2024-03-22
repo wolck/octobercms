@@ -4,7 +4,7 @@
  * @see https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/Tab_Role
  * @see https://www.w3.org/TR/wai-aria-practices/examples/tabs/tabs-2/tabs.html
  */
-oc.Module.register('backend.component.tabs', function () {
+oc.Modules.register('backend.component.tabs', function () {
     Vue.component('backend-component-tabs', {
         props: {
             tabs: Array,
@@ -233,7 +233,7 @@ oc.Module.register('backend.component.tabs', function () {
                     return;
                 }
 
-                Vue.nextTick($.oc.octoberTooltips.clear, 1);
+                Vue.nextTick(oc.octoberTooltips.clear, 1);
 
                 if (tabIndex === null || !this.tabs.length) {
                     this.selectedTabKey = null;

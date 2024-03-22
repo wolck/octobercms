@@ -1,4 +1,4 @@
-oc.Module.register('backend.vuecomponents.documentmarkdowneditor.utils', function() {
+oc.Modules.register('backend.vuecomponents.documentmarkdowneditor.utils', function() {
     'use strict';
 
     class Utils {
@@ -80,7 +80,7 @@ oc.Module.register('backend.vuecomponents.documentmarkdowneditor.utils', functio
 
             return {
                 type: 'button',
-                icon: 'octo-icon-' + this.mapIconName(component, cmd),
+                icon: 'icon-' + this.mapIconName(component, cmd),
                 command: 'markdowneditor-toolbar-' + buttonCmd,
                 tooltip: component.trans($button.attr('title')),
                 pressed: !ignorePressState && $button.hasClass('active')
