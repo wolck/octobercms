@@ -1,5 +1,5 @@
 {
-    "name": "acme/blog-plugin",
+    "name": "acme/testslangen",
     "type": "october-plugin",
     "description": "a plugin to test how to get it on the marketplace",
     "require": {
