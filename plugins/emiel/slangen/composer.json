@@ -1,0 +1,10 @@
+{
+    "name": "acme/blog-plugin",
+    "type": "october-plugin",
+    "description": "a plugin to test how to get it on the marketplace",
+    "require": {
+        "composer/installers": "~1.0",
+        "october/rain": ">=3.1",
+
+    }
+}
