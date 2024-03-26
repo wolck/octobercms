@@ -1,7 +1,7 @@
 {
-    "name": "october/october",
+    "name": "october/october-plugin",
     "description": "Built using October CMS: The Laravel-Based CMS Engineered For Simplicity",
-    "type": "project",
+    "type": "plugin",
     "homepage": "https://octobercms.com",
     "license": "proprietary",
     "require": {
