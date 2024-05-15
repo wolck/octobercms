@@ -1,0 +1,25 @@
+columns:
+    seo_title:
+        label: title
+        type: text
+    seo_desc:
+        label: description
+        type: text
+    meta_keyword:
+        label: keyword
+        type: text
+    meta_robotindex:
+        label: robotIndex
+        type: text
+    meta_robotfollow:
+        label: RobotFollow
+        type: text
+    meta_robotadv:
+        label: RobotAdv
+        type: text
+    canonical_url:
+        label: Canonical
+        type: text
+    redirect_url:
+        label: Redirect
+        type: text

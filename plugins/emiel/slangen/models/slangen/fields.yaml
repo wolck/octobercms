@@ -1,0 +1,15 @@
+fields:
+    slangen:
+        label: slangen
+        span: full
+        type: text
+    description:
+        label: description
+        size: ''
+        span: full
+        type: textarea
+    bijzonderheden:
+        label: bijzonderheden
+        size: ''
+        span: full
+        type: textarea

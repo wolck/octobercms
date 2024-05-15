@@ -1,0 +1,10 @@
+name: Seocontrol
+form: $/emielliefhebber/seoplugin/models/seoplugin/fields.yaml
+modelClass: EmielLiefhebber\Seoplugin\Models\Seoplugin
+defaultRedirect: emielliefhebber/seoplugin/seocontrol
+create:
+    redirect: 'emielliefhebber/seoplugin/seocontrol/update/:id'
+    redirectClose: emielliefhebber/seoplugin/seocontrol
+update:
+    redirect: emielliefhebber/seoplugin/seocontrol
+    redirectClose: emielliefhebber/seoplugin/seocontrol

@@ -1,0 +1,9 @@
+v1.0.1:
+    - 'Initialize plugin'
+v1.0.2:
+    - 'Created table emielliefhebber_seoplugin_'
+    - builder_table_create_emielliefhebber_seoplugin_.php
+v1.0.3:
+    - 'Updated table emielliefhebber_seoplugin_'
+    - builder_table_update_emielliefhebber_seoplugin_.php
+

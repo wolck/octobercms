@@ -1,0 +1,33 @@
+fields:
+    seo_title:
+        label: 'Seo title'
+        span: full
+        type: text
+    seo_desc:
+        label: 'Seo desc'
+        span: auto
+        type: textarea
+    meta_keyword:
+        label: 'Meta keyword'
+        span: auto
+        type: textarea
+    meta_robotindex:
+        label: 'Meta robotindex'
+        span: auto
+        type: checkbox
+    meta_robotfollow:
+        label: 'Meta robotfollow'
+        span: auto
+        type: checkbox
+    meta_robotadv:
+        label: 'Meta robotadv'
+        span: auto
+        type: textarea
+    canonical_url:
+        label: 'Canonical url'
+        span: left
+        type: text
+    redirect_url:
+        label: 'Redirect url'
+        span: auto
+        type: text
