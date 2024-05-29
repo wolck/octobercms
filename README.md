@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://github.com/octobercms/october/blob/develop/themes/demo/assets/images/october.png?raw=true" alt="October" width="25%" height="25%" />
+    <img src="https://github.com/octobercms/october/blob/develop/themes/demo/assets/images/favicon.png?raw=true" alt="October" width="25%" height="25%" />
 </p>
 
 [October](https://octobercms.com) is a Content Management System (CMS) and web platform whose sole purpose is to make your development workflow simple again. It was born out of frustration with existing systems. We feel building websites has become a convoluted and confusing process that leaves developers unsatisfied. We want to turn you around to the simpler side and get back to basics.
@@ -65,7 +65,7 @@ For announcements and updates:
 
 To chat or hang out:
 
-* [Join us on Slack](https://octobercms.slack.com)
+* [Join us on Slack](https://join.slack.com/t/octobercms/shared_invite/zt-2f19m689c-VCrBPc2P1dmqAJ_86Y8e_Q)
 * [Join us on Discord](https://discord.gg/gEKgwSZ)
 * [Join us on Telegram](https://t.me/octoberchat)
 

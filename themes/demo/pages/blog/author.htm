@@ -5,16 +5,13 @@ title = "Display a Blog Author"
 
 [section author]
 handle = "Blog\Author"
-entrySlug = "{{ :slug }}"
+identifier = "slug"
 
 [collection blog]
 handle = "Blog\Post"
 
 [resources]
 vars[activeNavLink] = 'blog'
-vars[howItsMadeCmsTemplate] = 'cms:cms-page:blog/author.htm'
-vars[howItsMadeTailorBlueprint] = 'tailor:tailor-blueprint:blog/author.yaml'
-vars[howItsMadeTailorContent] = 'entries/blog_author/{{ author.id }}'
 ==
 {% if author is empty %}
     {% do abort(404) %}
@@ -29,7 +26,7 @@ vars[howItsMadeTailorContent] = 'entries/blog_author/{{ author.id }}'
     </header>
     <div class="blog-featured row mb-2">
         <div class="col-md-12">
-            <div class="card post-card mb-4">
+            <div class="card card-post mb-4">
                 <div class="card-body">
                     {% partial 'elements/user-panel-author' user=author hideAllPosts=true %}
                 </div>

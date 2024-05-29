@@ -5,13 +5,10 @@ title = "Search Wiki Articles"
 meta_title = "Search - Wiki"
 
 [collection wiki]
-handle = "Wiki\Article"
+handle = "Page\Article"
 
 [resources]
 vars[activeNavLink] = "wiki"
-vars[howItsMadeCmsTemplate] = 'cms:cms-page:wiki/search.htm'
-vars[howItsMadeTailorBlueprint] = 'tailor:tailor-blueprint:wiki/article.yaml'
-vars[howItsMadeTailorContent] = 'entries/wiki_article'
 ==
 {% set searchTerm = get('term')|trim %}
 {% set articles = wiki.searchWhere(searchTerm, ['title', 'content']).paginate(4) %}
@@ -37,7 +34,7 @@ vars[howItsMadeTailorContent] = 'entries/wiki_article'
                     <div class="card mb-3">
                         <div class="card-body pb-0">
                             <h5 class="wiki-article-title">
-                                <a href="{{ 'wiki/article'|page({ slug: article.slug }) }}">{{ article.title }}</a>
+                                <a href="{{ 'wiki/article'|page({ fullslug: article.fullslug, id: article.id }) }}">{{ article.title }}</a>
                             </h5>
                             {{ article.content|html_limit(250)|raw }}
                         </div>

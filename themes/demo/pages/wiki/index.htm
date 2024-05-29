@@ -5,13 +5,10 @@ title = "Wiki Docs Demo"
 meta_title = "Wiki"
 
 [collection wiki]
-handle = "Wiki\Article"
+handle = "Page\Article"
 
 [resources]
 vars[activeNavLink] = 'wiki'
-vars[howItsMadeCmsTemplate] = 'cms:cms-page:wiki/index.htm'
-vars[howItsMadeTailorBlueprint] = 'tailor:tailor-blueprint:wiki/article.yaml'
-vars[howItsMadeTailorContent] = 'entries/wiki_article'
 ==
 {% set article = wiki.first() %}
 
@@ -24,7 +21,7 @@ vars[howItsMadeTailorContent] = 'entries/wiki_article'
             {% if article.banner %}
                 <div class="text-banner" style="background-image:url('{{ article.banner.path }}')"></div>
             {% else %}
-                <div class="text-banner" style="background-image:url('{{ partial('helpers/random-stock-image') }}')"></div>
+                <div class="text-banner" style="background-image:url('{{ partial('site/helpers/random-stock-image') }}')"></div>
             {% endif %}
         </div>
 

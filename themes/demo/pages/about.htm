@@ -1,16 +1,14 @@
+##
 url = "/about"
 layout = "default"
 title = "About Page"
-meta_title = "{{ landingPage.title }}"
+meta_title = "{{ aboutpage.title }}"
 
-[section landingPage]
-handle = "LandingPage"
+[section aboutpage]
+handle = "Page\About"
 
 [resources]
-vars[activeNavLink] = "about"
-vars[howItsMadeCmsTemplate] = "cms:cms-page:about.htm"
-vars[howItsMadeTailorBlueprint] = "tailor:tailor-blueprint:landing/landing-page.yaml"
-vars[howItsMadeTailorContent] = "entries/landing_page"
+vars[activeNavLink] = 'about'
 ==
 {% put headerAfter %}
     <div class="container">
@@ -21,7 +19,7 @@ vars[howItsMadeTailorContent] = "entries/landing_page"
     </div>
 {% endput %}
 <main class="header-flush">
-    {% for block in landingPage.blocks %}
+    {% for block in aboutpage.blocks %}
         {% partial 'blocks/' ~ str_slug(block.type) block=block %}
     {% endfor %}
 </main>

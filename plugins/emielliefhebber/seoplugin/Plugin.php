@@ -1,6 +1,8 @@
 <?php namespace EmielLiefhebber\Seoplugin;
 
 use System\Classes\PluginBase;
+use Emielliefhebber\Seoplugin\Models\Sitemap;
+use Carbon\Carbon;
 
 
 /**
@@ -23,6 +25,21 @@ class Plugin extends PluginBase
      */
         public function boot()
     {
+
+        $this->loadViewsFrom(__DIR__.'./views', 'EmielLiefhebber.Seoplugin');
+
+
+        \Event::listen('cms.page.postprocess', function($controller, $url, $page) {
+            // Check if the page is enabled
+            if ($page->enabled) {
+                // Add or update the URL in your sitemap model
+                Sitemap::updateOrCreate(['url' => $url], ['lastmod' => Carbon::now()]);
+            } else {
+                // Remove the URL from your sitemap model
+                Sitemap::where('url', $url)->delete();
+            }
+        });
+
 
         require_once __DIR__ . '/routes.php';
 
@@ -54,22 +71,22 @@ class Plugin extends PluginBase
                         'tab' => 'SEO',
                 ],
 
-      'viewBag[meta_robotindex]' => [
+      'viewBag[meta_robot_index]' => [
            'label' =>' META robotindex',
            'size' =>  'tiny',
             'type' => 'checkbox',
           'tab' => 'SEO',
        ],
 
-    'viewBag[meta_robotfollow]' => [
+    'viewBag[meta_robot_follow]' => [
         'label' => 'META robotfollow',
         'size' => 'tiny',
             'type' => 'checkbox',
         'tab' => 'SEO',
     ],
 
-    'viewBag[meta_robotsadv]' => [
-        'label' => 'META robotfollow',
+    'viewBag[meta_robots_adv]' => [
+        'label' => 'META robotadv',
         'size' => 'tiny',
         'type'  => 'textarea',
         'tab' => 'SEO',
@@ -126,6 +143,55 @@ class Plugin extends PluginBase
             }
         });
 
+        \Event::listen('backend.form.beforeSave', function($widget) {
+            if (!$widget->getController() instanceof \RainLab\Pages\Controllers\Index) {
+                return;
+            }
+
+            // Get the form data
+            $data = post();
+
+            // Process the data
+            $seoData = [];
+            foreach ($data['viewBag'] as $key => $value) {
+                // Remove 'viewBag[' from the start of the key and ']' from the end
+                $key = substr($key, 8, -1);
+
+                // Sanitize the value
+                $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+
+                // Add the processed data to the array
+                $seoData[$key] = $value;
+            }
+
+
+        });
+
+        \Event::listen('cms.page.beforeDisplay', function($controller, $url, $page) {
+            // Check if the page has SEO data
+            if (isset($page->viewBag)) {
+                // Get the SEO data
+                $seoData = $page->viewBag;
+
+                // Add the SEO data to the page's meta tags
+                foreach ($seoData as $key => $value) {
+                    if ($key === 'seo_title') {
+                        $controller->pageTitle = $value;
+                    } elseif ($key === 'seo_description') {
+                        $controller->metaDescription = $value;
+                    } elseif ($key === 'meta_keyword') {
+                        $controller->metaKeywords = $value;
+                    } elseif ($key === 'canonical_url') {
+                        $controller->addMeta('canonical', $value);
+                    } elseif ($key === 'redirect_url' && $value) {
+                        return Redirect::to($value);
+                    }
+                    // Add other meta tags as needed
+                }
+            }
+        });
+
+
     }
     /**
      * registerComponents used by the frontend.
@@ -134,29 +200,9 @@ class Plugin extends PluginBase
     {
         return [
             \emielLiefhebber\seoplugin\components\SeoFunctionallity::class => 'seoFunctionallity',
-            \emielLiefhebber\seoplugin\components\GenerateSnippet::class => 'generatesnippet',
-             \emielLiefhebber\seoplugin\components\SeoAnalyzer::class => 'SeoAnalyzer'
+            \emielLiefhebber\seoplugin\components\GenerateSnippet::class => 'generatesnippet'
         ];
     }
-    public function onGenerateRobotsTxt()
-    {
-        $indexSite = Settings::get('index_site'); // Get the value of the switch
-
-        $content = "User-agent: *\n";
-
-        if ($indexSite) {
-            $content .= "Allow: /"; // Allow all crawlers to index the site
-        } else {
-            $content .= "Disallow: /"; // Disallow all crawlers from indexing the site
-        }
-
-        // Write the content to the robots.txt file
-        file_put_contents('robots.txt', $content);
-    }
-
-
-
-
 
 
     /**
@@ -166,3 +212,5 @@ class Plugin extends PluginBase
     {
     }
 }
+
+
