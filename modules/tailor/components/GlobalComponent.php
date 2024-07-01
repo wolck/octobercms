@@ -16,10 +16,12 @@ class GlobalComponent extends ComponentModuleBase
     public function componentDetails()
     {
         return [
-            'name' => 'Global',
-            'description' => 'Makes globals available to the page.'
+            'name' => 'Global_',
+            'description' => 'Makes globals available to the page.',
+            'icon' => 'icon-cogs'
         ];
     }
+
     /**
      * defineProperties
      */

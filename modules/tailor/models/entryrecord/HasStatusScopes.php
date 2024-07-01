@@ -1,6 +1,6 @@
 <?php namespace Tailor\Models\EntryRecord;
 
-use Carbon\Carbon;
+use Date;
 use Tailor\Classes\Scopes\DraftableScope;
 
 /**
@@ -29,7 +29,7 @@ trait HasStatusScopes
         }
 
         if ($this->published_at || $this->expired_at) {
-            $now = Carbon::now();
+            $now = Date::now();
 
             if ($this->published_at && $now < $this->published_at) {
                 return 'scheduled';
@@ -52,14 +52,22 @@ trait HasStatusScopes
      */
     public function getStatusCodeOptions()
     {
-        return [
+        $options =  [
             'published' => ['Published', 'var(--bs-green)'],
             'expired' => ['Expired', 'var(--bs-red)'],
             'scheduled' => ['Scheduled', 'var(--bs-indigo)'],
             'hidden' => ['Hidden', '#bdc3c7'],
-            'draft' => ['Draft', 'var(--bs-orange)'],
-            'deleted' => ['Deleted', '#536061']
         ];
+
+        if ($this->useDrafts()) {
+            $options += ['draft' => ['Draft', 'var(--bs-orange)']];
+        }
+
+        if ($this->isSoftDeleteEnabled()) {
+            $options += ['deleted' => ['Deleted', '#536061']];
+        }
+
+        return $options;
     }
 
     /**
@@ -99,7 +107,7 @@ trait HasStatusScopes
      */
     public function scopeApplyPublishedStatus($query)
     {
-        $now = Carbon::now();
+        $now = Date::now();
 
         return $query->where('is_enabled', 1)
             ->where(function($q) use ($now) {
@@ -118,7 +126,7 @@ trait HasStatusScopes
      */
     public function scopeApplyScheduledStatus($query)
     {
-        $now = Carbon::now();
+        $now = Date::now();
 
         return $query->where('is_enabled', true)
             ->where('published_at', '>', $now)
@@ -130,7 +138,7 @@ trait HasStatusScopes
      */
     public function scopeApplyExpiredStatus($query)
     {
-        $now = Carbon::now();
+        $now = Date::now();
 
         return $query->where('is_enabled', true)
             ->where('expired_at', '<', $now)

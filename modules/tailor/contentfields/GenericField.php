@@ -33,13 +33,12 @@ class GenericField extends ContentFieldBase
 
         $column = $list->defineColumn($this->fieldName, $this->label)->displayAs($displayAs);
 
-        if ($this->options !== null) {
-            $column->options($this->options);
-        }
-
-        if ($this->shortLabel !== null) {
-            $column->shortLabel($this->shortLabel);
-        }
+        $this->transferConfig($column, [
+            'options',
+            'optionsPreset',
+            'optionsMethod',
+            'shortLabel'
+        ]);
 
         if (is_array($this->column)) {
             $column->useConfig($this->column);
@@ -61,13 +60,12 @@ class GenericField extends ContentFieldBase
 
         $scope = $filter->defineScope($this->fieldName, $this->label)->displayAs($displayAs);
 
-        if ($this->options !== null) {
-            $scope->options($this->options);
-        }
-
-        if ($this->shortLabel !== null) {
-            $scope->shortLabel($this->shortLabel);
-        }
+        $this->transferConfig($scope, [
+            'options',
+            'optionsPreset',
+            'optionsMethod',
+            'shortLabel'
+        ]);
 
         if (is_array($this->scope)) {
             $scope->useConfig($this->scope);
@@ -113,6 +111,10 @@ class GenericField extends ContentFieldBase
      */
     protected function getDefaultScopeDisplayType()
     {
+        if (is_array($this->scope) && isset($this->scope['type'])) {
+            return $this->scope['type'];
+        }
+
         switch ($this->type) {
             case 'checkbox':
             case 'switch':
@@ -132,6 +134,10 @@ class GenericField extends ContentFieldBase
      */
     protected function getDefaultColumnDisplayType()
     {
+        if (is_array($this->column) && isset($this->column['type'])) {
+            return $this->column['type'];
+        }
+
         switch ($this->type) {
             case 'checkbox':
             case 'switch':

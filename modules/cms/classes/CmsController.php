@@ -1,6 +1,7 @@
 <?php namespace Cms\Classes;
 
 use App;
+use Cms;
 use Site;
 use Config;
 use Request;
@@ -44,15 +45,21 @@ class CmsController extends ControllerBase
     }
 
     /**
-     * run finds and serves the request using the primary controller.
-     * @param string $url Specifies the requested page URL.
-     * If the parameter is omitted, the current URL used.
-     * @return string Returns the processed page content.
+     * run finds and serves the request using the primary controller. Specifies the
+     * requested page URL. If the parameter is omitted, the current URL used.
+     * Returns the processed page content.
+     * @param string $url
+     * @return string
      */
     public function run($url = '/')
     {
+        // Check configuration for bypass exceptions
+        if (Cms::urlHasException((string) $url, 'site')) {
+            return App::make(Controller::class)->run($url);
+        }
+
         // Locate site
-        $site = $this->findSite(Request::getHost(), $url);
+        $site = $this->findSite(Request::root(), $url);
 
         // Remove prefix, if applicable
         $uri = $this->parseUri($site, $url);
@@ -68,15 +75,14 @@ class CmsController extends ControllerBase
     /**
      * findSite locates the site based on the current URL
      */
-    protected function findSite(string $host, string $url)
+    protected function findSite(string $rootUrl, string $url)
     {
-        $site = Site::getSiteFromRequest($host, $url);
+        $site = Site::getSiteFromRequest($rootUrl, $url);
 
         if (!$site || !$site->is_enabled) {
             abort(404);
         }
 
-        Site::setActiveSite($site);
         Site::applyActiveSite($site);
 
         return $site;
@@ -95,8 +101,8 @@ class CmsController extends ControllerBase
      */
     protected function redirectWithoutPrefix($site, string $originalUrl, string $proposedUrl)
     {
-        // Only the primary site should redirect
-        if (!$site || !$site->is_primary || !$site->is_prefixed) {
+        // Only a fallback site should redirect
+        if (!$site || !$site->is_prefixed || !$site->isFallbackMatch) {
             return null;
         }
 
@@ -106,30 +112,41 @@ class CmsController extends ControllerBase
         }
 
         // Apply redirect policy
-        $site = $this->determineSiteFromPolicy($site);
+        $redirectUrl = $this->determineRedirectFromPolicy($site, $originalUrl);
+        if (!$redirectUrl) {
+            abort(404);
+        }
+
+        // Preserve query string
+        if ($queryString = Request::getQueryString()) {
+            $redirectUrl .= '?'.$queryString;
+        }
 
         // No prefix detected, attach one with redirect
-        return Redirect::to($site->attachRoutePrefix($originalUrl), 301);
+        return Redirect::to($redirectUrl, 301);
     }
 
     /**
-     * determineSiteFromPolicy returns a site based on the configuration
+     * determineRedirectFromPolicy returns a site based on the configuration
      */
-    protected function determineSiteFromPolicy($primary)
+    protected function determineRedirectFromPolicy($originalSite, $originalUrl)
     {
         $policy = Config::get('cms.redirect_policy', 'detect');
 
-        // Use primary site
-        if ($policy === 'primary') {
-            return $primary;
+        // Detect site from browser locale (same site)
+        if ($policy === 'detect') {
+            return Site::getSiteFromBrowser(
+                (string) Request::server('HTTP_ACCEPT_LANGUAGE'),
+                $originalSite->group_id
+            )?->attachRoutePrefix($originalUrl);
         }
 
-        // Detect site from browser locale
-        if ($policy === 'detect') {
-            return Site::getSiteFromBrowser((string) Request::server('HTTP_ACCEPT_LANGUAGE'));
+        // Use primary site
+        if ($policy === 'primary') {
+            return Site::getPrimarySite()?->base_url;
         }
 
         // Use a specified site ID
-        return Site::getSiteFromId($policy) ?: $primary;
+        return Site::getSiteFromId($policy)?->base_url;
     }
 }

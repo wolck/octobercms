@@ -1,8 +1,8 @@
-oc.Module.register('editor.extension.documentcomponent.base', function() {
+oc.Modules.register('editor.extension.documentcomponent.base', function() {
     'use strict';
 
-    const EditorTimeoutPromise = oc.Module.import('editor.timeoutpromise');
-    const DocumentUri = oc.Module.import('editor.documenturi');
+    const EditorTimeoutPromise = oc.Modules.import('editor.timeoutpromise');
+    const DocumentUri = oc.Modules.import('editor.documenturi');
 
     function patchDocumentMetadata(documentMetadata, responseMetadata) {
         if (!responseMetadata) {
@@ -17,7 +17,7 @@ oc.Module.register('editor.extension.documentcomponent.base', function() {
     }
 
     const DocumentComponentBase = {
-        mixins: [$.oc.vueHotkeyMixin],
+        mixins: [oc.vueHotkeyMixin],
         props: {
             componentData: Object
         },
@@ -185,7 +185,8 @@ oc.Module.register('editor.extension.documentcomponent.base', function() {
                     this.documentMetadata = data.metadata;
 
                     return data;
-                } catch (error) {
+                }
+                catch (error) {
                     if (!suppressGlobalDocumentError) {
                         this.$emit('tabfatalerror');
                     }
@@ -211,7 +212,8 @@ oc.Module.register('editor.extension.documentcomponent.base', function() {
                     this.processing = false;
 
                     return data;
-                } catch (error) {
+                }
+                catch (error) {
                     if (!suppressGlobalDocumentError) {
                         if (error.status === 0) {
                             this.errorLoadingDocument = 'Error connecting to the server.';

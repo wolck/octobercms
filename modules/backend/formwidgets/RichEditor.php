@@ -1,7 +1,7 @@
 <?php namespace Backend\FormWidgets;
 
 use App;
-use File;
+use Config;
 use Request;
 use BackendAuth;
 use Backend\Classes\FormWidgetBase;
@@ -16,21 +16,21 @@ use Backend\Models\EditorSetting;
 class RichEditor extends FormWidgetBase
 {
     //
-    // Configurable properties
+    // Configurable Properties
     //
 
     /**
-     * @var boolean Determines whether content has HEAD and HTML tags.
+     * @var bool Determines whether content has HEAD and HTML tags.
      */
     public $fullPage = false;
 
     /**
-     * @var boolean Determines whether content has HEAD and HTML tags.
+     * @var bool Determines whether content has HEAD and HTML tags.
      */
     public $toolbarButtons;
 
     /**
-     * @var boolean If true, the editor is set to read-only mode
+     * @var bool If true, the editor is set to read-only mode
      */
     public $readOnly = false;
 
@@ -46,23 +46,29 @@ class RichEditor extends FormWidgetBase
     public $showMargins = false;
 
     /**
+     * @var bool useLineBreaks uses line breaks instead of paragraph wrappers for each new line.
+     */
+    public $useLineBreaks = false;
+
+    /**
      * @var string Defines a mount point for the editor toolbar.
      * Must include a module name that exports the Vue application and a state element name.
-     * Format: module.name::stateElementName
+     * Format: stateElementName
      * Only works in Vue applications and form document layouts.
      */
     public $externalToolbarAppState = null;
 
     /**
-     * @var string Defines an event bus for an external toolbar.
-     * Must include a module name that exports the Vue application and a state element name.
-     * Format: module.name::eventBus
-     * Only works in Vue applications and form document layouts.
+     * @var array|null editorOptions configured in the Froala editor. For example:
+     *
+     * - imageDefaultWidth: Sets the default width of the image when it is inserted in the rich text editor. Setting it to `0` will not set any width.
+     * - imageDefaultAlign: Sets the default image alignment when it is inserted in the rich text editor. Possible values are `left`, `center` and `right`.
+     * - imageDefaultDisplay: Sets the default display for an image when is is inserted in the rich text. Possible options are: `inline` and `block`.
      */
-    public $externalToolbarEventBus = null;
+    public $editorOptions = null;
 
     //
-    // Object properties
+    // Object Properties
     //
 
     /**
@@ -85,6 +91,8 @@ class RichEditor extends FormWidgetBase
             'toolbarButtons',
             'legacyMode',
             'showMargins',
+            'useLineBreaks',
+            'editorOptions',
             'externalToolbarAppState',
             'externalToolbarEventBus'
         ]);
@@ -110,13 +118,14 @@ class RichEditor extends FormWidgetBase
     {
         $this->vars['field'] = $this->formField;
         $this->vars['editorLang'] = $this->getValidEditorLang();
+        $this->vars['editorOptions'] = $this->getValidEditorOptions();
         $this->vars['fullPage'] = $this->fullPage;
+        $this->vars['useLineBreaks'] = $this->useLineBreaks;
         $this->vars['stretch'] = $this->formField->stretch;
         $this->vars['size'] = $this->formField->size;
         $this->vars['readOnly'] = $this->readOnly;
         $this->vars['showMargins'] = $this->showMargins;
         $this->vars['externalToolbarAppState'] = $this->externalToolbarAppState;
-        $this->vars['externalToolbarEventBus'] = $this->externalToolbarEventBus;
         $this->vars['name'] = $this->getFieldName();
         $this->vars['value'] = $this->getLoadValue();
         $this->vars['toolbarButtons'] = $this->evalToolbarButtons();
@@ -167,28 +176,41 @@ class RichEditor extends FormWidgetBase
         $this->addJs('js/build-min.js');
         $this->addJs('js/richeditor.js');
         $this->addJs('/modules/backend/formwidgets/codeeditor/assets/js/build-min.js');
-
-        if ($lang = $this->getValidEditorLang()) {
-            $this->addJs('vendor/froala/js/languages/'.$lang.'.js');
-        }
     }
 
     /**
-     * Returns a valid language code for Redactor.
-     * @return string|mixed
+     * getValidEditorLang returns a proposed language code for Froala.
      */
-    protected function getValidEditorLang()
+    protected function getValidEditorLang(): ?string
     {
         $locale = App::getLocale();
 
         // English is baked in
-        if ($locale == 'en') {
-            return null;
+        if ($locale !== 'en') {
+            return str_replace('-', '_', strtolower($locale));
         }
 
-        $locale = str_replace('-', '_', strtolower($locale));
-        $path = base_path('modules/backend/formwidgets/richeditor/assets/vendor/froala/js/languages/'.$locale.'.js');
+        return null;
+    }
 
-        return File::exists($path) ? $locale : false;
+    /**
+     * getValidEditorOptions returns custom editor options passed directly to the JS control
+     */
+    protected function getValidEditorOptions(): array
+    {
+        $config = [];
+
+        if (is_array($this->editorOptions)) {
+            $config += $this->editorOptions;
+        }
+
+        if (
+            Config::get('editor.html_defaults.enabled', false) &&
+            is_array($fileConfig = Config::get('editor.html_defaults.editor_options'))
+        ) {
+            $config += $fileConfig;
+        }
+
+        return $config;
     }
 }

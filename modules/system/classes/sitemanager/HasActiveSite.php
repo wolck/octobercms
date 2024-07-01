@@ -15,49 +15,13 @@ use System\Models\SiteDefinition;
 trait HasActiveSite
 {
     /**
-     * getActiveSite
+     * applyActiveSiteId
      */
-    public function getActiveSite()
+    public function applyActiveSiteId($id)
     {
-        return $this->getSiteFromId($this->getActiveSiteId())
-            ?: $this->getPrimarySite();
-    }
-
-    /**
-     * getActiveSiteId
-     */
-    public function getActiveSiteId()
-    {
-        return Config::get('system.active_site');
-    }
-
-    /**
-     * setActiveSite
-     */
-    public function setActiveSiteId($id)
-    {
-        Config::set('system.active_site', $id);
-
-        /**
-         * @event system.site.setActiveSite
-         * Fires when the active site has been changed.
-         *
-         * Example usage:
-         *
-         *     Event::listen('system.site.setActiveSite', function($id) {
-         *         \Log::info("Site has been changed to $id");
-         *     });
-         *
-         */
-        Event::fire('system.site.setActiveSite', compact('id'));
-    }
-
-    /**
-     * setActiveSite
-     */
-    public function setActiveSite($site)
-    {
-        $this->setActiveSiteId($site->id);
+        if ($site = $this->getSiteFromId($id)) {
+            $this->applyActiveSite($site);
+        }
     }
 
     /**
@@ -93,5 +57,55 @@ trait HasActiveSite
         if ($site->is_prefixed) {
             Cms::setUrlPrefix($site->route_prefix);
         }
+
+        $this->setActiveSite($site);
+    }
+
+    /**
+     * getActiveSite
+     */
+    public function getActiveSite()
+    {
+        return $this->getSiteFromId($this->getActiveSiteId())
+            ?: $this->getPrimarySite();
+    }
+
+    /**
+     * getActiveSiteId
+     */
+    public function getActiveSiteId()
+    {
+        return Config::get('system.active_site');
+    }
+
+    /**
+     * setActiveSite
+     */
+    public function setActiveSiteId($id)
+    {
+        Config::set('system.active_site', $id);
+
+        /**
+         * @event system.site.setActiveSite
+         * Fires when the active site has been changed.
+         *
+         * Example usage:
+         *
+         *     Event::listen('system.site.setActiveSite', function($id) {
+         *         \Log::info("Site has been changed to $id");
+         *     });
+         *
+         */
+        Event::fire('system.site.setActiveSite', [$id]);
+
+        $this->broadcastSiteChange($id);
+    }
+
+    /**
+     * setActiveSite
+     */
+    public function setActiveSite($site)
+    {
+        $this->setActiveSiteId($site->id);
     }
 }

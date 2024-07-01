@@ -1,4 +1,4 @@
-oc.Module.register('backend.component.richeditor.document.connector.formwidgetconnector', function () {
+oc.Modules.register('backend.component.richeditor.document.connector.formwidgetconnector', function () {
     Vue.component('backend-component-richeditor-document-connector-formwidgetconnector', {
         props: {
             textarea: null,
@@ -24,13 +24,21 @@ oc.Module.register('backend.component.richeditor.document.connector.formwidgetco
                     this.toolbarExtensionPoint,
                     {
                         type: 'button',
-                        icon: this.fullScreen ? 'octo-icon-fullscreen-collapse' : 'octo-icon-fullscreen',
+                        icon: this.fullScreen ? 'icon-fullscreen-collapse' : 'icon-fullscreen',
                         command: 'document:toggleFullscreen',
                         pressed: this.fullScreen,
                         fixedRight: true,
                         tooltip: this.lang.langFullscreen
                     }
                 ];
+            },
+
+            editorOptions: function computeEditorOptions() {
+                if (typeof this.options.editorOptions !== 'object') {
+                    return {};
+                }
+
+                return this.options.editorOptions;
             },
 
             toolbarButtons: function computeToolbarButtons() {
@@ -51,8 +59,8 @@ oc.Module.register('backend.component.richeditor.document.connector.formwidgetco
                 return this.options.readOnly;
             },
 
-            externalToolbarEventBus: function computeExternalToolbarEventBus() {
-                return this.options.externalToolbarEventBus;
+            externalToolbarAppState: function computeExternalToolbarAppState() {
+                return this.options.externalToolbarAppState;
             },
 
             toolbarExtensionPointProxy: function computeToolbarExtensionPointProxy() {
@@ -60,14 +68,12 @@ oc.Module.register('backend.component.richeditor.document.connector.formwidgetco
                     return this.toolbarExtensionPoint;
                 }
 
-                // Expected format: tailor.app::toolbarExtensionPoint
-                const parts = this.options.externalToolbarAppState.split('::');
-                if (parts.length !== 2) {
-                    throw new Error('Invalid externalToolbarAppState format. Expected format: module.name::stateElementName');
-                }
+                const point = $.oc.vueUtils.getToolbarExtensionPoint(
+                    this.options.externalToolbarAppState,
+                    this.textarea
+                );
 
-                const app = oc.Module.import(parts[0]);
-                return app.state[parts[1]];
+                return point ? point.state : this.toolbarExtensionPoint;
             },
 
             hasExternalToolbar: function computeHasExternalToolbar() {

@@ -16,7 +16,7 @@ use ApplicationException;
 class DataTable extends FormWidgetBase
 {
     //
-    // Configurable properties
+    // Configurable Properties
     //
 
     /**
@@ -31,7 +31,7 @@ class DataTable extends FormWidgetBase
     public $rowSorting = false;
 
     //
-    // Object properties
+    // Object Properties
     //
 
     /**

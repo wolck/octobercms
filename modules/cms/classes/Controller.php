@@ -110,6 +110,11 @@ class Controller
     protected $partialWatcher;
 
     /**
+     * @var bool pageCycled
+     */
+    protected $pageCycled = false;
+
+    /**
      * __construct the controller.
      * @param \Cms\Classes\Theme $theme Specifies the CMS theme.
      * If the theme is not specified, the current active theme used.
@@ -121,8 +126,8 @@ class Controller
             throw new CmsException(Lang::get('cms::lang.theme.active.not_found'));
         }
 
-        $this->assetPath = $this->getThemeAssetPath();
-        $this->assetLocalPath = $this->theme->getPath();
+        $this->assetPath = $this->getThemeAssetRelativePath();
+        $this->assetUrlPath = $this->getThemeAssetUrl();
         $this->router = new Router($this->theme);
         $this->initTwigEnvironment();
 
@@ -130,14 +135,14 @@ class Controller
     }
 
     /**
-     * run finds and serves the requested page.
+     * run finds and serves the requested page URL.
      * If the page cannot be found, returns the page with the URL /404.
      * If the /404 page doesn't exist, returns the system 404 page.
-     * If the parameter is null, the current URL used. If it is not
-     * provided then '/' is used
+     * If the parameter is null, the current URL used. If it is not provided then '/' is used.
+     * Returns the response to the provided URL.
      *
-     * @param string|null $url Specifies the requested page URL.
-     * @return BaseResponse Returns the response to the provided URL
+     * @param string|null $url
+     * @return mixed
      */
     public function run($url = '/')
     {
@@ -155,8 +160,10 @@ class Controller
             $page = null;
         }
 
+        $originalPageFound = !!$page;
+
         // Maintenance mode
-        if (MaintenanceSetting::isEnabled()) {
+        if (MaintenanceSetting::isEnabled() && !Cms::urlHasException($url, 'maintenance')) {
             if (!Request::ajax()) {
                 $this->setStatusCode(503);
             }
@@ -249,10 +256,13 @@ class Controller
             $result = $event;
         }
 
-        /*
-         * Prepare and return response
-         * @see \System\Traits\ResponseMaker
-         */
+        // Log the pageview
+        if ($originalPageFound && !App::runningUnitTests()) {
+            TrafficLogger::logPageview();
+        }
+
+        // Prepare and return response
+        // @see \System\Traits\ResponseMaker
         return $this->makeResponse($result);
     }
 
@@ -276,17 +286,25 @@ class Controller
             throw new CmsException(Lang::get('cms::lang.page.not_found_name', ['name'=>$pageFile]));
         }
 
-        return $controller->runPage($page, false);
+        return $controller->runPage($page, ['render' => true]);
     }
 
     /**
      * runPage runs a page directly from its object and supplied parameters.
      * @param \Cms\Classes\Page $page
-     * @param bool $useAjax
+     * @param array $options
      * @return string
      */
-    public function runPage($page, $useAjax = true)
+    public function runPage($page, $options = [])
     {
+        // Process options
+        extract(array_merge([
+            'capture' => false,
+            'render' => false
+        ], (array) $options));
+
+        $useAjax = !($capture || $render);
+
         // If the page doesn't refer any layout, create the fallback layout.
         // Otherwise load the layout specified in the page.
         if (!$page->layout) {
@@ -298,6 +316,7 @@ class Controller
 
         $this->page = $page;
         $this->layout = $layout;
+        $this->pageCycled = false;
 
         // The 'this' variable is reserved for default variables.
         $this->vars['this'] = new ThisVariable([
@@ -409,7 +428,9 @@ class Controller
         // Render the layout
         $result = $this->renderLayoutContents();
 
-        return $result;
+        if (!$capture) {
+            return $result;
+        }
     }
 
     /**
@@ -418,7 +439,9 @@ class Controller
      */
     public function pageCycle()
     {
-        return $this->execPageCycle();
+        if (!$this->pageCycled) {
+            $this->execPageCycle();
+        }
     }
 
     /**
@@ -428,6 +451,8 @@ class Controller
      */
     protected function execPageCycle()
     {
+        $this->pageCycled = true;
+
         /**
          * @event cms.page.start
          * Fires before all of the page & layout lifecycle handlers are run
@@ -509,7 +534,7 @@ class Controller
     }
 
     /**
-     * Post-processes page HTML code before it's sent to the client.
+     * postProcessResult post-processes page HTML code before it's sent to the client.
      * Note for pre-processing see cms.template.processTwigContent event.
      * @param \Cms\Classes\Page $page Specifies the current CMS page.
      * @param string $url Specifies the current URL.
@@ -518,29 +543,31 @@ class Controller
      */
     protected function postProcessResult($page, $url, $content)
     {
-        $content = MediaViewHelper::instance()->processHtml($content);
-
         /**
-         * @event cms.page.postprocess
-         * Provides opportunity to hook into the post-processing of page HTML code before being sent to the client. `$dataHolder` = {content: $htmlContent}
+         * @event cms.page.postProcessContent
+         * Provides opportunity to hook into the post-processing of page HTML code before being sent to the client.
          *
          * Example usage:
          *
-         *     Event::listen('cms.page.postprocess', function ((\Cms\Classes\Controller) $controller, (string) $url, (\Cms\Classes\Page) $page, (object) $dataHolder) {
-         *         $dataHolder->content = str_replace('<a href=', '<a rel="nofollow" href=', $dataHolder->content);
+         *     Event::listen('cms.page.postProcessContent', function ((\Cms\Classes\Controller) $controller, (string) $url, (\Cms\Classes\Page) $page, (string) &$content) {
+         *         $content = str_replace('<a href=', '<a rel="nofollow" href=', $content);
          *     });
          *
          * Or
          *
-         *     $controller->bindEvent('page.postprocess', function ((string) $url, (\Cms\Classes\Page) $page, (object) $dataHolder) {
-         *         $dataHolder->content = 'My custom content';
+         *     $controller->bindEvent('page.postProcessContent', function ((string) $url, (\Cms\Classes\Page) $page, (string) &$content) {
+         *         $content = 'My custom content';
          *     });
          *
          */
+        $this->fireSystemEvent('cms.page.postProcessContent', [$url, $page, &$content]);
+
+        // @deprecated this event will be removed in a later version
         $dataHolder = (object) ['content' => $content];
         $this->fireSystemEvent('cms.page.postprocess', [$url, $page, $dataHolder]);
+        $content = $dataHolder->content;
 
-        return $dataHolder->content;
+        return $content;
     }
 
     //
@@ -654,17 +681,22 @@ class Controller
     //
 
     /**
-     * pageUrl looks up the URL for a supplied page and returns it relative to the website root.
-     *
-     * @param mixed $name Specifies the Cms Page file name.
-     * @param array $parameters Route parameters to consider in the URL.
-     * @param bool $routePersistence By default the existing routing parameters will be included
+     * pageUrl looks up the URL for a supplied page name and returns it relative to the website root,
+     * including route parameters. Parameters can be persisted from the current page parameters.
+     * @param string|null $name
+     * @param array $parameters
+     * @param bool $routePersistence
      * @return string
      */
-    public function pageUrl($name, $parameters = [], $routePersistence = true)
+    public function pageUrl($name = null, $parameters = [], $routePersistence = true)
     {
         if (!$name) {
             return $this->currentPageUrl($parameters, $routePersistence);
+        }
+
+        // Invalid input same as not found
+        if (!is_string($name)) {
+            return null;
         }
 
         // Second parameter can act as third
@@ -712,7 +744,12 @@ class Controller
             return $this->combineAssets($url);
         }
 
-        return Url::asset($this->getThemeAssetPath($url));
+        $themeUrl = $this->getThemeAssetUrl($url);
+        if (Config::get('system.themes_asset_url')) {
+            return $themeUrl;
+        }
+
+        return Url::toRelative($themeUrl);
     }
 
     /**
@@ -733,7 +770,7 @@ class Controller
     /**
      * getController returns an existing instance of the controller.
      * If the controller doesn't exists, returns null.
-     * @return mixed Returns the controller object or null.
+     * @return self|null
      */
     public static function getController()
     {
@@ -814,6 +851,15 @@ class Controller
     public function getLayout()
     {
         return $this->layout;
+    }
+
+    /**
+     * getPartialObject returns the active partial object from the current context
+     * @return \Cms\Classes\CodeBase
+     */
+    public function getPartialObject()
+    {
+        return $this->partialStack ? $this->partialStack->getPartialObj() : null;
     }
 
     //

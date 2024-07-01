@@ -20,6 +20,27 @@
       'manage_themes' => 'Manage Themes',
       'customize_theme' => 'Customize Theme',
     ],
+    'status_data_source' => [
+      'name' => 'Website Status',
+      'dimension_cms_information' => 'Website status information',
+      'status_maintenance' => 'Maintenance',
+      'status_online' => 'Online',
+      'widgets' => [
+        'status' => [
+          'title' => 'Website Status',
+          'link' => 'Manage status'
+        ]
+      ]
+    ],
+    'report_data_source' => [
+      'name' => 'Traffic Information',
+      'metric_pageviews' => 'Pageviews',
+      'metric_unique_visitors' => 'Unique Visitors',
+      'dimension_city' => 'City',
+      'dimension_country' => 'Country',
+      'dimension_page_path' => 'Page Path',
+      'dimension_referral_domain' => 'Referral Domain'
+    ]
   ],
   'theme' => [
     'active' => [
@@ -247,6 +268,23 @@
     'manage_partials' => 'Create, modify and delete CMS partials',
     'manage_themes' => 'Activate, deactivate and configure CMS themes',
     'manage_theme_options' => 'Configure customization options for the active theme',
+    'manage_internal_traffic_statistics' => 'Purge the Internal Traffic Statistics data'
+  ],
+  'internal_traffic_statistics' => [
+    'label' => 'Internal Traffic Statistics',
+    'permission_description' => 'Purge the Internal Traffic Statistics data',
+    'permission_label' => 'Manage Internal Traffic Statistics settings',
+    'hint' => 'The Internal Traffic Statistics feature logs pageviews, IP addresses, and other basic anonymous user data into the database.',
+    'disabled' => 'Internal Traffic Statistics is disabled. To enable it, edit configuration in config/cms.php.',
+    'enabled' => 'Internal Traffic Statistics is currently enabled. You can adjust the retention period and time zone, or disable this feature, by editing the settings in config/cms.php.',
+    'purging' => 'Purging the data...',
+    'purge_button' => 'Purge Data',
+    'purge_data_confirm' => 'Do you really want to purge the Internal Traffic Statistics data?',
+    'retention' => 'Data retention period',
+    'timezone' => 'Time zone',
+    'retention_mon' => ':retention month(s)',
+    'retention_indefinite' => 'Indefinite',
+    'purge_success' => 'Internal Traffic Statistics data purged'
   ],
   'theme_log' => [
     'hint' => 'This log displays any changes made to the theme by administrators in the back-end area.',
@@ -281,12 +319,14 @@
     'learn_more' => 'Learn more',
     'docs' => [
       'partial' => 'Renders the contents of a CMS partial.',
+      'ajaxpartial' => 'Renders the contents of a CMS partial with AJAX support.',
       'page' => 'Renders the contents of a CMS page into a layout template.',
       'content' => 'Renders a CMS content block.',
       'component' => 'Renders the default markup content for a CMS component.',
       'placeholder' => 'Renders a placeholder section.',
       'scripts' => 'Inserts JavaScript file references to scripts injected by the application.',
       'styles' => 'Renders CSS links to stylesheet files injected by the application.',
+      'meta' => 'Renders HTML meta tags injected by the application.',
       'flash' => 'Renders any flash messages stored in the user session.',
       'verbatim' => 'Marks entire sections as being raw text that should not be parsed.',
       'macro' => 'Allows to define custom functions in a template.',
@@ -335,9 +375,11 @@
       'page_filter' => 'The `page` filter creates a link to a page using a page file name, without an extension, as a parameter.',
       'theme_filter' => 'The `theme` filter returns an address relative to the active theme path of the website. ',
       'app_filter' => 'The `app` filter returns an address relative to the public path of the website.',
-      'media_filter' => 'The `media` filter returns an address relative to the public path of the [media manager library](https://octobercms.com/docs/cms/mediamanager). ',
+      'media_filter' => 'The `media` filter returns an address relative to the public path of the [media manager library](https://docs.octobercms.com/3.x/cms/media/introduction.html).',
       'md_filter' => 'The `md` filter converts the value from Markdown to HTML format.',
       'raw_filter' => 'The `raw` filter marks the value as being "safe", which means that a variable will not be escaped if `raw` is the last filter applied to it.',
+      'content_filter' => 'The `content` filter converts links and snippets found within the string as content.',
+      'link_filter' => 'The `link` filter converts a link found in the supplied string.',
     ],
   ],
 ];

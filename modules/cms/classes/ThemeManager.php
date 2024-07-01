@@ -1,6 +1,7 @@
 <?php namespace Cms\Classes;
 
 use Db;
+use App;
 use Lang;
 use Yaml;
 use File;
@@ -13,15 +14,11 @@ use Exception;
 /**
  * ThemeManager
  *
- * @method static ThemeManager instance()
- *
  * @package october\cms
  * @author Alexey Bobkov, Samuel Georges
  */
 class ThemeManager
 {
-    use \October\Rain\Support\Traits\Singleton;
-
     /**
      * @var array installedThemes is for storing installed themes cache
      */
@@ -36,6 +33,14 @@ class ThemeManager
      * @var array installedThemeDirs is for storing installed themes cache
      */
     protected $installedThemeDirs;
+
+    /**
+     * instance creates a new instance of this singleton
+     */
+    public static function instance(): static
+    {
+        return App::make('cms.themes');
+    }
 
     /**
      * bootAllFrontend
@@ -432,7 +437,7 @@ class ThemeManager
             }
 
             foreach ($required as $require) {
-                if ($manager->hasPlugin($require)) {
+                if (!$require || $manager->hasPlugin($require)) {
                     continue;
                 }
 
@@ -492,7 +497,12 @@ class ThemeManager
         }
 
         // Lock theme
-        File::put($lockFile, 1);
+        try {
+            File::put($lockFile, 1);
+        }
+        catch (Exception $ex) {
+            return false;
+        }
 
         return true;
     }
@@ -511,7 +521,12 @@ class ThemeManager
         }
 
         // Unlock theme
-        File::delete($lockFile);
+        try {
+            File::delete($lockFile);
+        }
+        catch (Exception $ex) {
+            return false;
+        }
 
         return true;
     }

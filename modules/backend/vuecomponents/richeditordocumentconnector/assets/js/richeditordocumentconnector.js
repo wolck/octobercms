@@ -1,6 +1,6 @@
-oc.Module.register('backend.component.richeditor.document.connector', function () {
-    const utils = oc.Module.import('backend.vuecomponents.richeditordocumentconnector.utils');
-    const octoberCommands = oc.Module.import('backend.vuecomponents.richeditordocumentconnector.octobercommands');
+oc.Modules.register('backend.component.richeditor.document.connector', function () {
+    const utils = oc.Modules.import('backend.vuecomponents.richeditordocumentconnector.utils');
+    const octoberCommands = oc.Modules.import('backend.vuecomponents.richeditordocumentconnector.octobercommands');
 
     Vue.component('backend-component-richeditor-document-connector', {
         props: {
@@ -25,37 +25,35 @@ oc.Module.register('backend.component.richeditor.document.connector', function (
                 type: Boolean,
                 default: false
             },
-            externalToolbarEventBus: String
+            externalToolbarAppState: String
         },
         data: function() {
-            const imageDropdownItems = [
-                {
-                    command: 'oc-upload-image',
-                    label: 'command_upload_from_computer'
-                }
-            ];
-            const fileDropdownItems = [
-                {
-                    command: 'oc-upload-file',
-                    label: 'command_upload_from_computer'
-                }
-            ];
+            const imageDropdownItems = [];
+            const fileDropdownItems = [];
+            const videoDropdownOptions = [];
+            const audioDropdownOptions = [];
 
-            const videoDropdownOptions = [
-                {
-                    command: 'oc-embed-video',
-                    label: 'embedding_code'
-                }
-            ];
+            videoDropdownOptions.push({
+                command: 'oc-embed-video',
+                label: 'embedding_code'
+            });
 
-            const audioDropdownOptions = [
-                {
-                    command: 'oc-embed-audio',
-                    label: 'embedding_code'
-                }
-            ];
+            audioDropdownOptions.push({
+                command: 'oc-embed-audio',
+                label: 'embedding_code'
+            });
 
             if (this.useMediaManager) {
+                imageDropdownItems.push({
+                    command: 'oc-upload-image',
+                    label: 'command_upload_from_computer'
+                });
+
+                fileDropdownItems.push({
+                    command: 'oc-upload-file',
+                    label: 'command_upload_from_computer'
+                });
+
                 imageDropdownItems.push({
                     command: 'oc-browse-image',
                     label: 'browse'
@@ -158,6 +156,7 @@ oc.Module.register('backend.component.richeditor.document.connector', function (
                     html: {
                         cmd: 'oc-toggle-code-editor'
                     },
+                    insertSnippet: {},
                     insertLink: {},
                     insertPageLink: {},
                     insertImage: {
@@ -177,8 +176,13 @@ oc.Module.register('backend.component.richeditor.document.connector', function (
                         dropdownOnly: true
                     }
                 },
-                nonModifyingCommands: ['insertLink', 'insertPageLink'],
+                nonModifyingCommands: ['insertSnippet', 'insertLink', 'insertPageLink'],
                 iconMap: {
+                    'undo': 'text-undo',
+                    'redo': 'text-redo',
+                    'bold': 'text-bold',
+                    'italic': 'text-italic',
+                    'underline': 'text-underline',
                     'align-left': 'text-left',
                     'align-right': 'text-right',
                     'align-center': 'text-center',
@@ -193,8 +197,9 @@ oc.Module.register('backend.component.richeditor.document.connector', function (
                     subscript: 'text-subscript',
                     superscript: 'text-superscript',
                     strikeThrough: 'text-strikethrough',
-                    insertLink: 'link',
-                    insertPageLink: 'link',
+                    insertSnippet: 'newspaper',
+                    insertLink: 'text-link',
+                    insertPageLink: 'text-link',
                     insertTable: 'text-insert-table',
                     outdent: 'text-decrease-indent',
                     indent: 'text-increase-indent',
@@ -203,7 +208,7 @@ oc.Module.register('backend.component.richeditor.document.connector', function (
                     'icon-image': 'text-image',
                     'icon-video-camera': 'text-video',
                     'icon-volume-up': 'volume',
-                    'icon-file-o': 'attachment',
+                    'icon-file': 'attachment',
                     clearFormatting: 'text-clear-formatting',
                     selectAll: 'cursor-arrow',
                     html: 'edit-code'
@@ -261,18 +266,16 @@ oc.Module.register('backend.component.richeditor.document.connector', function (
             },
 
             externalToolbarEventBusObj: function computeExternalToolbarEventBusObj() {
-                if (!this.externalToolbarEventBus) {
+                if (!this.externalToolbarAppState) {
                     return null;
                 }
 
-                // Expected format: tailor.app::eventBus
-                const parts = this.externalToolbarEventBus.split('::');
-                if (parts.length !== 2) {
-                    throw new Error('Invalid externalToolbarEventBus format. Expected format: module.name::stateElementName');
-                }
+                const point = $.oc.vueUtils.getToolbarExtensionPoint(
+                    this.externalToolbarAppState,
+                    this.$el
+                );
 
-                const module = oc.Module.import(parts[0]);
-                return module.state[parts[1]];
+                return point ? point.bus : null;
             },
 
             hasExternalToolbar: function computeHasExternalToolbar() {
@@ -364,7 +367,18 @@ oc.Module.register('backend.component.richeditor.document.connector', function (
 
             updateSize: function updateSize() {
                 if (this.allowResizing) {
-                    $(this.$el).find('.fr-element.fr-view').css('width', this.size + 'px');
+                    const $wrapper = $('.fr-wrapper', this.$el);
+                    const containerSize = $(this.$el).width();
+                    if (containerSize && this.size > containerSize) {
+                        $wrapper
+                            .css('width', this.size + 'px')
+                            .css('margin-left', '-50%');
+                    }
+                    else {
+                        $wrapper
+                            .css('width', this.size + 'px')
+                            .css('margin-left', -(this.size / 2) + 'px');
+                    }
                 }
             },
 
@@ -379,7 +393,6 @@ oc.Module.register('backend.component.richeditor.document.connector', function (
                 }
 
                 // Froala uses 50ms timeout
-                //
                 this.updateDebounceTimeoutId = setTimeout(this.extendToolbar, 80);
             },
 
@@ -407,7 +420,7 @@ oc.Module.register('backend.component.richeditor.document.connector', function (
             },
 
             toggleCodeEditing: function toggleCodeEditing() {
-                const EditorModelDefinition = oc.Module.import('backend.vuecomponents.monacoeditor.modeldefinition');
+                const EditorModelDefinition = oc.Modules.import('backend.vuecomponents.monacoeditor.modeldefinition');
 
                 if (!this.codeEditingMode) {
                     const basePath = this.configuration.vendorPath;
@@ -583,10 +596,12 @@ oc.Module.register('backend.component.richeditor.document.connector', function (
                 this.initListeners();
                 this.$on('toolbarcmd', this.onToolbarCommand);
                 this.updateSize();
+                addEventListener('resize', this.updateSize);
             });
         },
         beforeDestroy: function beforeDestroy() {
             this.$textarea.off('.connector');
+            removeEventListener('resize', this.updateSize);
 
             this.unmountEventBus();
 

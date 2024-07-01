@@ -1,0 +1,18 @@
+plugin:
+    name: 'emielliefhebber.seoplugin::lang.plugin.name'
+    description: 'emielliefhebber.seoplugin::lang.plugin.description'
+    author: 'emiel liefhebber'
+    icon: oc-icon-adjust
+    homepage: ''
+navigation:
+    Seo:
+        label: Seoplugin
+        url: emielliefhebber/seoplugin/seocontrol
+        icon: icon-life-ring
+
+        fields:
+            index_site:
+                label: 'Index Site'
+                type: switch
+                default: true
+                comment: 'Turn on to allow indexing. Turn off to disallow indexing.'

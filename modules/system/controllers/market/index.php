@@ -13,7 +13,7 @@
 
     <div class="control-tabs content-tabs" data-control="tab">
 
-        <div style="position:absolute; right:0; z-index:2">
+        <div class="me-2" style="position:absolute;top:0;right:0;z-index:2">
             <a
                 href="javascript:;"
                 data-control="popup"

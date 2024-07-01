@@ -1,0 +1,21 @@
+url = "/new-pages"
+layout = "default"
+title = "New pages"
+
+[viewBag]
+seo_keyphrase = "the"
+
+[keyPhrasecheck]
+==
+{% component 'keyPhrasecheck' %}
+{% component 'Breadcrums' %}
+ pollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollopollo
+ kollo
+ nollo
+ vollo
+
+ <ul class="breadcrumbs">
+    {% for crumb in breadcrumbs %}
+        <li><a href="{{ crumb.url }}">{{ crumb.title }}</a></li>
+    {% endfor %}
+</ul>

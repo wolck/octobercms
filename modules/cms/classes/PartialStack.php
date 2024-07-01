@@ -44,13 +44,20 @@ class PartialStack
     }
 
     /**
+     * getPartialObj
+     */
+    public function getPartialObj()
+    {
+        return $this->activePartial['obj'] ?? null;
+    }
+
+    /**
      * addPartialObj
      */
     public function addPartialObj($partialObj)
     {
         $this->activePartial['obj'] = $partialObj;
     }
-
 
     /**
      * findHandlerFromStack
@@ -109,6 +116,33 @@ class PartialStack
         }
 
         return null;
+    }
+
+    /**
+     * getComponents returns all components registered in the partial stack
+     */
+    public function getComponents(): array
+    {
+        if (!$this->activePartial) {
+            return [];
+        }
+
+        $components = [];
+
+        $orderedStack = array_merge($this->partialStack, [$this->activePartial]);
+        foreach ($orderedStack as $stack) {
+            if (!is_array($stack['components'])) {
+                continue;
+            }
+
+            foreach ($stack['components'] as $componentInfo) {
+                if (isset($componentInfo['name']) && isset($componentInfo['obj'])) {
+                    $components[$componentInfo['name']] = $componentInfo['obj'];
+                }
+            }
+        }
+
+        return $components;
     }
 
     /**

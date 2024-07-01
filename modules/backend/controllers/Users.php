@@ -3,6 +3,7 @@
 use Lang;
 use Flash;
 use Config;
+use System;
 use Backend;
 use Redirect;
 use BackendAuth;
@@ -175,6 +176,18 @@ class Users extends SettingsController
     }
 
     /**
+     * formBeforeCreate
+     */
+    public function formBeforeCreate($model)
+    {
+        // In production, we assume the user creating the new user is not the
+        // new user so password must always be reset for security reasons
+        if (!System::checkDebugMode()) {
+            $model->is_password_expired = true;
+        }
+    }
+
+    /**
      * getRoleOptions returns available role options
      */
     protected function getRankedRoleOptions()
@@ -249,7 +262,7 @@ class Users extends SettingsController
     {
         // SettingsManager::setContext('October.Backend', 'myaccount');
 
-        $this->pageTitle = 'backend::lang.myaccount.menu_label';
+        $this->pageTitle = "My Account";
 
         return $this->update($this->user->id, 'myaccount');
     }
@@ -262,9 +275,9 @@ class Users extends SettingsController
         $result = $this->asExtension('FormController')->update_onSave($this->user->id, 'myaccount');
 
         // If the password or login name has been updated, reauthenticate the user
-        //
         $loginChanged = $this->user->login != post('User[login]');
         $passwordChanged = strlen(post('User[password]'));
+
         if ($loginChanged || $passwordChanged) {
             // Determine remember policy
             $remember = Config::get('backend.force_remember');

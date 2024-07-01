@@ -1,0 +1,21 @@
+v1.0.1:
+    - 'Initialize plugin'
+v1.0.2:
+    - 'Created table emielliefhebber_seoplugin_'
+    - builder_table_create_emielliefhebber_seoplugin_.php
+v1.0.3:
+    - 'Updated table emielliefhebber_seoplugin_'
+    - builder_table_update_emielliefhebber_seoplugin_.php
+v1.0.4:
+    - 'Created table emielliefhebber_seoplugin_sitemap'
+    - sitemaps.php
+v1.0.5:
+    - 'Created table emielliefhebber_seoplugin_sitemaps'
+    - builder_table_create_emielliefhebber_seoplugin_sitemaps.php
+v1. 0.6:
+    - 'Created table emielliefhebber_seoplugin_sitemaps'
+    - keyphrase.php
+v1. 07:
+    - 'Created table emielliefhebber_seoplugin_redirecturl'
+    - redirecturl.php
+
