@@ -21,8 +21,8 @@ class GenerateSnippet extends ComponentBase
     protected function generateSnippetPreview()
     {
         $page = $this->getPage();
-        $title = $page->viewBag['seo_title'];
-        $description = $page->viewBag['seo_description'];
+        $title = array_key_exists('seo_title', $page->viewBag) ? $page->viewBag['seo_title'] : '';
+        $description = array_key_exists('seo_description', $page->viewBag) ? $page->viewBag['seo_description'] : '';
         $url = $page->url;
 
         // Format the data to look like a search engine result
@@ -34,4 +34,5 @@ class GenerateSnippet extends ComponentBase
 
         return $snippetPreview;
     }
+
 }

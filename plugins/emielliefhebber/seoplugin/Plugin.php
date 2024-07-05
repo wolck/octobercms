@@ -176,7 +176,6 @@ class Plugin extends PluginBase
     {
         return [
             \emielLiefhebber\seoplugin\components\GenerateSnippet::class => 'generatesnippet',
-             \emielLiefhebber\seoplugin\components\Breadcrums::class => 'Breadcrums',
              \emielLiefhebber\seoplugin\components\KeyPhrasecheck::class => 'keyPhrasecheck'
         ];
     }
