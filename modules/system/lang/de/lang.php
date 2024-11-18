@@ -14,9 +14,7 @@
       'label' => 'Ungültiges Sicherheitstoken',
     ],
   ],
-  'combiner' => [
-    'not_found' => 'Die combiner Datei \':name\' wurde nicht gefunden.',
-  ],
+  'combiner' => [],
   'system' => [
     'name' => 'System',
     'menu_label' => 'System',
@@ -37,10 +35,7 @@
   ],
   'plugin' => [
     'unnamed' => 'Unbenanntes Plugin',
-    'name' => [
-      'label' => 'Plugin-Name',
-      'help' => 'Benennen Sie das Plugin eindeutig, zum Beispiel RainLab.Blog',
-    ],
+    'name' => [],
   ],
   'project' => [
     'attach' => 'Projekt verbinden',
@@ -73,9 +68,7 @@
     'sending' => 'Sende Nachricht...',
     'return' => 'Zurück zur Vorlagen-Liste',
   ],
-  'install' => [
-    'plugin_label' => 'Plugin installieren',
-  ],
+  'install' => [],
   'updates' => [
     'plugin_author' => 'Autor',
     'plugin_not_found' => 'Plugin not found',

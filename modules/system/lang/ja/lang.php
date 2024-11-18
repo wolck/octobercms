@@ -9,9 +9,7 @@
   'file' => [
     'create_fail' => 'ファイル\':name\'を作成できません。',
   ],
-  'combiner' => [
-    'not_found' => 'コンバイナファイル\':name\'が見つかりません。',
-  ],
+  'combiner' => [],
   'system' => [
     'name' => 'システム',
     'menu_label' => 'システム',
@@ -32,10 +30,7 @@
   ],
   'plugin' => [
     'unnamed' => '名前なしプラグイン',
-    'name' => [
-      'label' => 'プラグイン名',
-      'help' => '重複しないプラグイン名を付けてください。（例：RainLab.Blog）',
-    ],
+    'name' => [],
   ],
   'plugins' => [
     'enable_or_disable' => '有効化・無効化',
@@ -47,12 +42,10 @@
     'selected_amount' => 'プラグインを:amount個選択',
     'remove_confirm' => '削除していいですか？',
     'remove_success' => 'システムからプラグインを削除しました。',
-    'refresh_confirm' => '更新していいですか？',
     'refresh_success' => 'システム内のプラグインを更新しました。',
     'disable_confirm' => '無効にしていいですか？',
     'disable_success' => 'プラグインを無効にしました。',
     'enable_success' => 'プラグインを有効にしました。',
-    'unknown_plugin' => 'システムから見知らぬプラグインを削除しました。',
   ],
   'project' => [
     'attach' => 'プロジェクト追加',
@@ -75,9 +68,7 @@
     'test_send' => 'テストメッセージを送信する',
     'return' => 'テンプレートリストに戻る',
   ],
-  'install' => [
-    'plugin_label' => 'プラグインインストール',
-  ],
+  'install' => [],
   'updates' => [
     'plugin_author' => '作者',
     'plugin_not_found' => 'Plugin not found',

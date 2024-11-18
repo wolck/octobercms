@@ -14,9 +14,7 @@
       'label' => 'Neplatný bezpečnostní token',
     ],
   ],
-  'combiner' => [
-    'not_found' => 'Slučující soubor \':name\' nebyl nalezen.',
-  ],
+  'combiner' => [],
   'system' => [
     'name' => 'Systém',
     'menu_label' => 'Systém',
@@ -40,14 +38,10 @@
   'theme' => [
     'label' => 'Téma',
     'unnamed' => 'Téma bez názvu',
-    'name' => [
-      'label' => 'Název téma',
-      'help' => 'Název téma podle jeho unikátního názvu, například RainLab.Vanilla',
-    ],
+    'name' => [],
   ],
   'themes' => [
     'install' => 'Instalace témat',
-    'search' => 'Vyhledat téma k instalaci...',
     'installed' => 'Instalované téma',
     'no_themes' => 'Žádné téma instalované z tržiště.',
     'recommended' => 'Doporučené',
@@ -56,10 +50,7 @@
   'plugin' => [
     'label' => 'Pluginy',
     'unnamed' => 'Plugin bez jména',
-    'name' => [
-      'label' => 'Název pluginu',
-      'help' => 'Pojmenujte plugin unikátním kódem, například RainLab.Blog',
-    ],
+    'name' => [],
     'by_author' => 'Vytvořil :name',
   ],
   'plugins' => [
@@ -67,7 +58,6 @@
     'enable_or_disable_title' => 'Zapne, nebo vyplne pluginy',
     'install' => 'Instalace pluginů',
     'install_products' => 'Instalované produkty',
-    'search' => 'vyhledejte pluginy k instalaci...',
     'installed' => 'Instalované pluginy',
     'no_plugins' => 'Žádné instalované pluginy z tržiště.',
     'recommended' => 'Doporučené',
@@ -80,12 +70,10 @@
     'selected_amount' => 'Vybrané pluginy: :amount',
     'remove_confirm' => 'Opravdu chcete odstranit tento plugin?',
     'remove_success' => 'Plugin úspěšně odstraněn ze systému.',
-    'refresh_confirm' => 'Jste si jistí?',
     'refresh_success' => 'Pluginy byly úspěšně obnoveny.',
     'disable_confirm' => 'Jste si jistí?',
     'disable_success' => 'Pluginy úspěšně deaktivovány.',
     'enable_success' => 'Pluginy úspěšně aktivovány.',
-    'unknown_plugin' => 'Plugin odstraněn ze systému.',
   ],
   'project' => [
     'attach' => 'Připojit projekt',
@@ -119,10 +107,7 @@
     'sending' => 'Odesílání testovací zprávy...',
   ],
   'mail_brand' => [],
-  'install' => [
-    'plugin_label' => 'Instalace pluginu',
-    'theme_label' => 'Instalace téma',
-  ],
+  'install' => [],
   'updates' => [
     'plugin_author' => 'Autor',
     'plugin_not_found' => 'Plugin nenalezen',

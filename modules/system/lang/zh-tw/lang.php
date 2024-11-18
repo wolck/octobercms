@@ -9,9 +9,7 @@
   'file' => [
     'create_fail' => '不能建立檔案: :name',
   ],
-  'combiner' => [
-    'not_found' => '混合檔案 \':name\' 沒找到.',
-  ],
+  'combiner' => [],
   'system' => [
     'name' => '系統',
     'menu_label' => '系統',
@@ -32,14 +30,10 @@
   ],
   'theme' => [
     'unnamed' => '未命名主題',
-    'name' => [
-      'label' => '主題名稱',
-      'help' => '主題的唯一名稱，例如：RainLab.Vanilla',
-    ],
+    'name' => [],
   ],
   'themes' => [
     'install' => '安裝主題',
-    'search' => '搜尋主題...',
     'installed' => '已安裝主題',
     'no_themes' => '市集上沒有已安裝的主題。',
     'recommended' => '推薦',
@@ -47,17 +41,13 @@
   ],
   'plugin' => [
     'unnamed' => '未命名的外掛',
-    'name' => [
-      'label' => '外掛名稱',
-      'help' => '外掛的唯一名稱，例如：RainLab.Blog',
-    ],
+    'name' => [],
   ],
   'plugins' => [
     'enable_or_disable' => '啟用或停用',
     'enable_or_disable_title' => '啟用或停用外掛',
     'install' => '安裝外掛',
     'install_products' => '安裝產品',
-    'search' => '搜尋外掛...',
     'installed' => '已安裝外掛',
     'no_plugins' => '市集中沒有已安裝的外掛。',
     'recommended' => '推薦',
@@ -68,12 +58,10 @@
     'selected_amount' => '選取的外掛: :數目',
     'remove_confirm' => '您確定嗎?',
     'remove_success' => '成功從系統移除這些外掛.',
-    'refresh_confirm' => '您確定嗎?',
     'refresh_success' => '成功更新了系統中的外掛.',
     'disable_confirm' => '您確定嗎?',
     'disable_success' => '成功停用了這些外掛.',
     'enable_success' => '成功啟用了這些外掛',
-    'unknown_plugin' => '外掛從檔案系統中移除了.',
   ],
   'project' => [
     'attach' => '增加產品',
@@ -96,10 +84,7 @@
     'test_send' => '發送測試訊息',
     'return' => '返回模板列表',
   ],
-  'install' => [
-    'plugin_label' => '安裝外掛',
-    'theme_label' => '安裝主題',
-  ],
+  'install' => [],
   'updates' => [
     'plugin_author' => '作者',
     'plugin_not_found' => 'Plugin not found',

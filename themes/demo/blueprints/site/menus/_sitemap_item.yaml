@@ -1,27 +1,13 @@
-uuid: 6743a1c3-3e57-4cfa-a886-e0c0a277fd71
-handle: Site\Sitemap
-type: structure
-name: Sitemap
-drafts: false
-pagefinder: false
-
-structure:
-    maxDepth: 1
-
-navigation:
-    parent: settings
-    icon: icon-sitemap
-    description: Specify pages to appear in the sitemap for your website.
-    category: CATEGORY_CMS
+uuid: 5282e203-615f-4f1f-9c23-22b010c49eba
+handle: Site\Menus\SitemapItem
+type: mixin
+name: Menu Item
 
 fields:
-    reference:
-        label: Reference
-        type: pagefinder
-
     priority:
         label: Priority
         commentAbove: The priority of this URL relative to other URLs on your site.
+        tab: Sitemap
         type: radio
         inlineOptions: true
         options:
@@ -39,6 +25,7 @@ fields:
     changefreq:
         commentAbove: How frequently the page is likely to change.
         label: Change Frequency
+        tab: Sitemap
         type: radio
         inlineOptions: true
         options:
@@ -55,11 +42,14 @@ fields:
         shortLabel: Nesting
         comment: Nested items could be generated dynamically by supported page references.
         type: checkbox
+        tab: Reference
+        column: false
 
     replace:
         label: Replace this item with its generated children
         comment: Use this checkbox to push generated menu items to the same level with this item. This item itself will be hidden.
         type: checkbox
+        tab: Reference
         column: false
         scope: false
         trigger:

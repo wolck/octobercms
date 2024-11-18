@@ -89,7 +89,7 @@
   "Removing plugin: :name": "Removing plugin: :name",
   "Please specify a Plugin name to install.": "Please specify a Plugin name to install.",
   "Update process complete": "Update process complete",
-  "Plugin installed successfully": "Plugin installed successfully",
+  "Package installed successfully": "Package installed successfully",
   "Check Dependencies": "Check Dependencies",
   "Install Dependencies": "Install Dependencies",
   "There are missing dependencies needed for the system to run correctly.": "There are missing dependencies needed for the system to run correctly.",
@@ -237,5 +237,6 @@
   "Event log emptied": "Event log emptied",
   "Empty Event Log": "Empty Event Log",
   "Emptying Event Log...": "Emptying Event Log...",
-  "Return to Event Log": "Return to Event Log"
+  "Return to Event Log": "Return to Event Log",
+  "Installed": "Installed"
 }

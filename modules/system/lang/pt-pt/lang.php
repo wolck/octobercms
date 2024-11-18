@@ -51,9 +51,7 @@
       'label' => 'Token de segurança inválido',
     ],
   ],
-  'combiner' => [
-    'not_found' => 'O ficheiro combinador ":name" não foi encontrado.',
-  ],
+  'combiner' => [],
   'system' => [
     'name' => 'Sistema',
     'menu_label' => 'Sistema',
@@ -75,14 +73,10 @@
   'theme' => [
     'label' => 'Tema',
     'unnamed' => 'Tema sem nome',
-    'name' => [
-      'label' => 'Nome do Tema',
-      'help' => 'O nome do tema deve ser único. Por exemplo, RainLab.Vanilla',
-    ],
+    'name' => [],
   ],
   'themes' => [
     'install' => 'Instalar tema',
-    'search' => 'Procurar temas para instalar...',
     'installed' => 'Temas instalados',
     'no_themes' => 'Não há temas instalados.',
     'recommended' => 'Recomendado',
@@ -91,17 +85,13 @@
   'plugin' => [
     'label' => 'Extensão',
     'unnamed' => 'Extensão sem nome',
-    'name' => [
-      'label' => 'Nome da extensão',
-      'help' => 'Nomeie a extensão pelo seu código exclusivo. Por exemplo, RainLab.Blog',
-    ],
+    'name' => [],
   ],
   'plugins' => [
     'enable_or_disable' => 'Activar ou desactivar',
     'enable_or_disable_title' => 'Activar ou desactivar extensões',
     'install' => 'Instalar extensões',
     'install_products' => 'Instalar produtos',
-    'search' => 'Procurar extensão para instalar...',
     'installed' => 'Extensões instaladas',
     'no_plugins' => 'Não há extensões instaladas.',
     'recommended' => 'Recomendada',
@@ -114,12 +104,10 @@
     'selected_amount' => 'Extensões selecionadas: :amount',
     'remove_confirm' => 'Tem a certeza?',
     'remove_success' => 'Extensões removidas com sucesso do sistema.',
-    'refresh_confirm' => 'Tem a certeza?',
     'refresh_success' => 'Extensões atualizadas com sucesso.',
     'disable_confirm' => 'Tem a certeza?',
     'disable_success' => 'Extensões desactivadas com sucesso.',
     'enable_success' => 'Extensões desactivadas com sucesso.',
-    'unknown_plugin' => 'Extensão removida do sistema de ficheiros.',
   ],
   'project' => [
     'attach' => 'Anexar Projecto',
@@ -152,10 +140,7 @@
     'sending' => 'Enviando mensagem de teste...',
     'return' => 'Regressar à lista de modelos',
   ],
-  'install' => [
-    'plugin_label' => 'Instalar extensão',
-    'theme_label' => 'Instalar tema',
-  ],
+  'install' => [],
   'updates' => [
     'plugin_author' => 'Autor',
     'plugin_not_found' => 'Extensão não encontrada',
