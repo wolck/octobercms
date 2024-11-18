@@ -37,6 +37,7 @@ class Resources extends ComponentModuleBase
         return [
             'name' => 'Resources',
             'description' => 'Reference assets and variables included on this page.',
+            'icon' => 'icon-cubes'
         ];
     }
 
@@ -92,7 +93,7 @@ class Resources extends ComponentModuleBase
     public function init()
     {
         $this->assetPath = $this->controller->assetPath;
-        $this->assetLocalPath = $this->controller->assetLocalPath;
+        $this->assetUrlPath = $this->controller->assetUrlPath;
         $this->jsDir = $this->guessAssetDirectory(['js', 'javascript'], $this->jsDir);
         $this->scssDir = $this->guessAssetDirectory(['scss', 'sass'], $this->scssDir);
     }
@@ -151,7 +152,13 @@ class Resources extends ComponentModuleBase
      */
     protected function prefixJs($value)
     {
-        return 'assets/'.$this->jsDir.'/'.trim($value);
+        $path = 'assets/'.$this->jsDir.'/'.trim($value);
+
+        if (($theme = $this->getTheme()) && $theme->useParentAsset($path)) {
+            return '#/'.$theme->getParentTheme()->getDirName().'/'.$path;
+        }
+
+        return $path;
     }
 
     /**
@@ -159,7 +166,13 @@ class Resources extends ComponentModuleBase
      */
     protected function prefixCss($value)
     {
-        return 'assets/'.$this->cssDir.'/'.trim($value);
+        $path = 'assets/'.$this->cssDir.'/'.trim($value);
+
+        if (($theme = $this->getTheme()) && $theme->useParentAsset($path)) {
+            return '#/'.$theme->getParentTheme()->getDirName().'/'.$path;
+        }
+
+        return $path;
     }
 
     /**
@@ -167,7 +180,13 @@ class Resources extends ComponentModuleBase
      */
     protected function prefixLess($value)
     {
-        return 'assets/'.$this->lessDir.'/'.trim($value);
+        $path = 'assets/'.$this->lessDir.'/'.trim($value);
+
+        if (($theme = $this->getTheme()) && $theme->useParentAsset($path)) {
+            return '#/'.$theme->getParentTheme()->getDirName().'/'.$path;
+        }
+
+        return $path;
     }
 
     /**
@@ -175,7 +194,13 @@ class Resources extends ComponentModuleBase
      */
     protected function prefixScss($value)
     {
-        return 'assets/'.$this->scssDir.'/'.trim($value);
+        $path = 'assets/'.$this->scssDir.'/'.trim($value);
+
+        if (($theme = $this->getTheme()) && $theme->useParentAsset($path)) {
+            return '#/'.$theme->getParentTheme()->getDirName().'/'.$path;
+        }
+
+        return $path;
     }
 
     /**

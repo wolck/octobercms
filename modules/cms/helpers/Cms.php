@@ -5,10 +5,12 @@ use Site;
 use View;
 use Route;
 use Config;
+use Request;
 use Redirect;
 use Response;
+use Cms\Classes\Page;
 use Cms\Classes\Controller;
-use System\Helpers\DateTimeHelper;
+use System\Helpers\DateTime as DateTimeHelper;
 use Exception;
 
 /**
@@ -20,6 +22,8 @@ use Exception;
  */
 class Cms
 {
+    use \Cms\Helpers\Cms\HasSites;
+
     /**
      * @var bool actionExists determines if the run action exists
      */
@@ -60,22 +64,24 @@ class Cms
         }
 
         if (self::$actionExists) {
-            return Url::action($routeAction, ['slug' => $path]);
+            $result = Url::action($routeAction, ['slug' => $path]);
+        }
+        else {
+            $result = $path;
         }
 
         // Use the base URL
-        return Url::to($path);
+        return Url::toRelative($result);
     }
 
     /**
      * pageUrl returns a URL for a CMS page, this fires up the CMS controller
-     * to generate the value
+     * to generate the value for maximum performance.
      */
     public function pageUrl($name, $parameters = [])
     {
-        $controller = (Controller::getController() ?: new Controller);
-
-        return $controller->pageUrl($name, $parameters, false);
+        return (Controller::getController() ?: new Controller)
+            ->pageUrl($name, $parameters, false);
     }
 
     /**
@@ -84,11 +90,37 @@ class Cms
      */
     public function fullUrl($path = null)
     {
+        $path = '/' . ltrim($path, '/');
+
         if ($site = Site::getSiteFromContext()) {
             return rtrim($site->base_url . $path, '/');
         }
 
-        return $this->url($path);
+        return Url::to($path);
+    }
+
+    /**
+     * entryUrl returns an entry point URL from the CMS theme based on a component name
+     * and the isDefault component property to assign it explicitly.
+     */
+    public function entryUrl($componentName, array $parameters = [], array $componentProps = null)
+    {
+        // @todo check cached, if not, see \Tailor\Behaviors\PreviewController for example -sg
+        $pages = $componentProps
+            ? Page::whereComponent($componentName, $componentProps)
+            : Page::withComponent($componentName);
+
+        $page = $pages->first();
+
+        if ($pages->count() > 1) {
+            $page = $pages->whereComponent($componentName, ['isDefault' => true])->first() ?: $page;
+        }
+
+        if (!$page) {
+            return null;
+        }
+
+        return $this->pageUrl($page->getBaseFileName(), $parameters);
     }
 
     /**
@@ -108,20 +140,82 @@ class Cms
     }
 
     /**
+     * redirectFromPost performs a redirect after an action using a "redirect" postback
+     * value. Setting to false or 0 will disable the redirect. This method will only
+     * redirect to a relative path for security reasons.
+     */
+    public function redirectFromPost($defaultTo = null, $key = null)
+    {
+        return $this->makePostRedirect($defaultTo, $key);
+    }
+
+    /**
+     * redirectIntendedFromPost
+     */
+    public function redirectIntendedFromPost($defaultTo = null, $key = null)
+    {
+        return $this->makePostRedirect($defaultTo, $key, 'intended');
+    }
+
+    /**
+     * makePostRedirect
+     */
+    protected function makePostRedirect($defaultTo = null, $key = null, $method = 'to')
+    {
+        if ($defaultTo === null) {
+            $defaultTo = Request::path();
+        }
+
+        if ($key === null) {
+            $key = 'redirect';
+        }
+
+        $property = post($key);
+
+        // No redirect (false)
+        if (!$property || $property === 'false') {
+            return;
+        }
+
+        // Refresh current page (true)
+        if (in_array($property, ['1', 'true'])) {
+            return Redirect::$method($defaultTo);
+        }
+
+        // Specify a CMS page name
+        if ($redirectUrl = $this->pageUrl($property)) {
+            return Redirect::$method($redirectUrl);
+        }
+
+        // Specify a relative URL
+        return Redirect::$method(Url::makeRelative($property));
+    }
+
+    /**
+     * flashFromPost requests a flash message from the "message" postback.
+     */
+    public function flashFromPost($message, $key = 'message')
+    {
+        $property = post($key);
+
+        if (in_array($property, ['0', 'false'])) {
+            return;
+        }
+
+        return $property ?: $message;
+    }
+
+    /**
      * pageNotFound returns a 404 page response
      */
     public function pageNotFound()
     {
-        try {
-            $controller = (Controller::getController() ?: new Controller);
+        $controller = (Controller::getController() ?: new Controller);
 
-            $router = $controller->getRouter();
+        $router = $controller->getRouter();
 
-            if ($router->findByUrl('/404')) {
-                return $controller->run('/404');
-            }
-        }
-        catch (Exception $ex) {
+        if ($router->findByUrl('/404')) {
+            return $controller->run('/404');
         }
 
         return Response::make(View::make('cms::404'), 404);
@@ -158,5 +252,46 @@ class Cms
         $carbon->setTimezone(Config::get('cms.timezone', Config::get('app.timezone')));
 
         return $carbon;
+    }
+
+    /**
+     * urlHasException checks if the url pattern has an exception for the specified type
+     */
+    public function urlHasException(string $url, string $type): bool
+    {
+        $exceptions = (array) Config::get('cms.url_exceptions', []);
+        if (!$exceptions) {
+            return false;
+        }
+
+        // Normalize URL
+        $haystack = '/' . trim($url, '/ ');
+
+        foreach ($exceptions as $urlPattern => $exceptionStr) {
+            $exceptionTypes = explode('|', $exceptionStr);
+            if (!in_array($type, $exceptionTypes)) {
+                continue;
+            }
+
+            // Normalize slash prefix, remove wildcard end
+            $needle = '/' . ltrim(rtrim($urlPattern, '*'), '/ ');
+            if (str_ends_with($urlPattern, '*') && str_starts_with($haystack, $needle)) {
+                return true;
+            }
+
+            if ($haystack === $needle) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * clearCache
+     */
+    public static function clearCache()
+    {
+        self::$actionExists = null;
     }
 }

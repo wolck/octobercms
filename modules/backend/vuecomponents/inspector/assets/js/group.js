@@ -1,7 +1,7 @@
 /*
  * Vue Inspector control group implementation
  */
-oc.Module.register('backend.component.inspector.group', function () {
+oc.Modules.register('backend.component.inspector.group', function () {
     Vue.component('backend-component-inspector-group', {
         props: {
             controls: {
@@ -11,6 +11,10 @@ oc.Module.register('backend.component.inspector.group', function () {
             obj: {
                 type: [Object, Array],
                 required: true
+            },
+            parentObj: {
+                type: Object,
+                required: false
             },
             splitterData: {
                 type: Object,

@@ -55,12 +55,7 @@
                 onclick="$.oc.updater.retryUpdate()">
                 <?= __("Try Again") ?>
             </button>
-            <button
-                type="button"
-                class="btn btn-default"
-                data-dismiss="popup">
-                <?= e(trans('backend::lang.form.cancel')) ?>
-            </button>
+            <?= Ui::button("Cancel")->dismissPopup()->secondary() ?>
         </div>
     </script>
 
@@ -76,12 +71,7 @@
         <p class="flash-message static error"><?= e(__($this->fatalError)) ?></p>
     </div>
     <div class="modal-footer">
-        <button
-            type="button"
-            class="btn btn-default"
-            data-dismiss="popup">
-            <?= e(trans('backend::lang.form.close')) ?>
-        </button>
+        <?= Ui::button("Close")->dismissPopup()->secondary() ?>
     </div>
 
 <?php endif ?>

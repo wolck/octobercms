@@ -17,7 +17,7 @@ class TagList extends FormWidgetBase
     const MODE_RELATION = 'relation';
 
     //
-    // Configurable properties
+    // Configurable Properties
     //
 
     /**
@@ -31,9 +31,9 @@ class TagList extends FormWidgetBase
     public $customTags = true;
 
     /**
-     * @deprecated above should be false
-     * public $customTags = false;
+     * @var bool useKey instead of value for saving and reading data.
      */
+    public $useKey = false;
 
     /**
      * @var mixed options settings. Set to true to get from model.
@@ -51,17 +51,17 @@ class TagList extends FormWidgetBase
     public $nameFrom = 'name';
 
     /**
-     * @var bool useKey instead of value for saving and reading data.
-     */
-    public $useKey = false;
-
-    /**
      * @var string placeholder for empty TagList widget
      */
     public $placeholder = '';
 
+    /**
+     * @var int maxItems permitted
+     */
+    public $maxItems;
+
     //
-    // Object properties
+    // Object Properties
     //
 
     /**
@@ -85,13 +85,14 @@ class TagList extends FormWidgetBase
             'options',
             'mode',
             'nameFrom',
+            'maxItems',
             'useKey',
             'placeholder'
         ]);
 
         $this->processMode();
 
-        $this->useOptions = $this->formField->options !== null;
+        $this->useOptions = $this->formField->hasOptions();
     }
 
     /**
@@ -135,6 +136,7 @@ class TagList extends FormWidgetBase
     public function prepareVars()
     {
         $this->vars['placeholder'] = $this->placeholder;
+        $this->vars['maxItems'] = $this->maxItems;
         $this->vars['useKey'] = $this->useKey;
         $this->vars['field'] = $this->formField;
         $this->vars['fieldOptions'] = $this->getFieldOptions();
@@ -169,7 +171,7 @@ class TagList extends FormWidgetBase
             return $this->getLoadValueFromRelation($value);
         }
 
-        if ($this->mode === static::MODE_STRING) {
+        if (!is_array($value) && $this->mode === static::MODE_STRING) {
             return $this->getLoadValueFromString($value);
         }
 
@@ -195,18 +197,36 @@ class TagList extends FormWidgetBase
     }
 
     /**
+     * getKeylessOptions returns a flat set of options when useKey is false
+     */
+    public function getKeylessOptions(array $selectedValues, array $fieldOptions): array
+    {
+        $result = [];
+
+        foreach ($fieldOptions as $option) {
+            if ($flatValue = $option->label) {
+                $result[$flatValue] = $flatValue;
+            }
+        }
+
+        foreach ($selectedValues as $value) {
+            $result[$value] = $value;
+        }
+
+        return $result;
+    }
+
+    /**
      * getPreviewOptions generates options for display in read only modes
      */
-    public function getPreviewOptions(array $selectedValues, array $availableOptions): array
+    public function getPreviewOptions(array $selectedValues, array $fieldOptions): array
     {
         $displayOptions = [];
-        foreach ($availableOptions as $key => $option) {
-            if (!strlen($option)) {
-                continue;
-            }
+
+        foreach ($fieldOptions as $key => $option) {
             if (
                 ($this->useKey && in_array($key, $selectedValues)) ||
-                (!$this->useKey && in_array($option, $selectedValues))
+                (!$this->useKey && in_array($option->label, $selectedValues))
             ) {
                 $displayOptions[] = $option;
             }

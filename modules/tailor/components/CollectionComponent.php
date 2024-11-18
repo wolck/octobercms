@@ -11,13 +11,19 @@ use Cms\Classes\ComponentModuleBase;
 class CollectionComponent extends ComponentModuleBase
 {
     /**
+     * @var array primaryRecordCache
+     */
+    protected $primaryRecordCache = false;
+
+    /**
      * componentDetails
      */
     public function componentDetails()
     {
         return [
             'name' => 'Collection',
-            'description' => 'Displays a collection of entries.'
+            'description' => 'Displays a collection of entries.',
+            'icon' => 'icon-clone'
         ];
     }
 
@@ -93,6 +99,18 @@ class CollectionComponent extends ComponentModuleBase
      * getPrimaryRecord
      */
     public function getPrimaryRecord()
+    {
+        if ($this->primaryRecordCache !== false) {
+            return $this->primaryRecordCache;
+        }
+
+        return $this->primaryRecordCache = $this->getPrimaryRecordResult();
+    }
+
+    /**
+     * getPrimaryRecordResult
+     */
+    public function getPrimaryRecordResult()
     {
         $query = $this->getPrimaryRecordQuery();
 

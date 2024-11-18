@@ -60,7 +60,7 @@ class StateManager extends ControllerBehavior
      */
     protected function getNavigatorSections($extension, $namespace, $documentType = null)
     {
-        $sectionList = new SectionList();
+        $sectionList = new SectionList;
         $sectionList->setChildKeyPrefix($namespace.':');
 
         $extension->listNavigatorSections($sectionList, $documentType);
@@ -107,7 +107,9 @@ class StateManager extends ControllerBehavior
     }
 
     /**
-     * getEditorLangStrings
+     * getEditorLangStrings returns a list of language strings required by the
+     * client-side extension controller.
+     * @return array
      */
     protected function getEditorLangStrings()
     {

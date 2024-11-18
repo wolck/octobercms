@@ -15,15 +15,11 @@ use System\Classes\PluginManager;
 /**
  * FieldManager
  *
- * @method static FieldManager instance()
- *
  * @package october\tailor
  * @author Alexey Bobkov, Samuel Georges
  */
 class FieldManager
 {
-    use \October\Rain\Support\Traits\Singleton;
-
     /**
      * @var array customFields stored in the form of ['FieldClass' => $fieldInfo].
      */
@@ -40,14 +36,27 @@ class FieldManager
     protected $customFieldHints;
 
     /**
-     * @var System\Classes\PluginManager
+     * @var int mixinRewriteCount is an incremental number used for rewriting mixin field names.
+     */
+    protected $mixinRewriteCount = 0;
+
+    /**
+     * @var PluginManager
      */
     protected $pluginManager;
 
     /**
-     * init initializes this singleton.
+     * instance creates a new instance of this singleton
      */
-    protected function init()
+    public static function instance(): static
+    {
+        return App::make('tailor.fields');
+    }
+
+    /**
+     * __construct this singleton.
+     */
+    public function __construct()
     {
         $this->pluginManager = PluginManager::instance();
     }
@@ -283,7 +292,9 @@ class FieldManager
         }
 
         foreach ($fieldset->getAllFields() as $fieldName => $fieldObj) {
-            $this->convertExternalConfigForColumn($fieldObj, $config['columns'][$fieldName] ?? false);
+            if (array_key_exists($fieldName, $config['columns'])) {
+                $this->convertExternalConfigForColumn($fieldObj, $config['columns'][$fieldName]);
+            }
         }
     }
 
@@ -301,6 +312,9 @@ class FieldManager
         elseif (is_string($config)) {
             $field->column(['label' => $config]);
         }
+        elseif (is_array($config)) {
+            $field->column($config);
+        }
     }
 
     /**
@@ -313,7 +327,9 @@ class FieldManager
         }
 
         foreach ($fieldset->getAllFields() as $fieldName => $fieldObj) {
-            $this->convertExternalConfigForScope($fieldObj, $config['scopes'][$fieldName] ?? false);
+            if (array_key_exists($fieldName, $config['scopes'])) {
+                $this->convertExternalConfigForScope($fieldObj, $config['scopes'][$fieldName]);
+            }
         }
     }
 
@@ -327,6 +343,9 @@ class FieldManager
         }
         elseif (is_string($config)) {
             $field->scope(['label' => $config]);
+        }
+        elseif (is_array($config)) {
+            $field->scope($config);
         }
     }
 
@@ -372,5 +391,21 @@ class FieldManager
         if (count($validationMessages) > 0) {
             $field->validationMessages($validationMessages);
         }
+    }
+
+    /**
+     * rewriteMixinNames changes the mixin field names to avoid collisions.
+     * Mixins are suffixed with a counter key.
+     */
+    public function rewriteMixinNames(array $fields): array
+    {
+        foreach ($fields as $code => $field) {
+            if (trim(strtolower($field['type'] ?? '')) === 'mixin') {
+                $fields[$code.$this->mixinRewriteCount++] = $field;
+                unset($fields[$code]);
+            }
+        }
+
+        return $fields;
     }
 }

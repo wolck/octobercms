@@ -2,16 +2,19 @@
 
 use App;
 use Cms;
+use Flash;
 use Block;
 use Event;
+use Request;
 use Response;
-use Redirect;
-use Cms\Classes\PageLookup;
+use Cms\Classes\PageManager;
 use Cms\Classes\Controller;
+use Cms\Classes\ThisVariable;
 use Twig\Environment as TwigEnvironment;
 use Twig\TwigFilter as TwigSimpleFilter;
 use Twig\TwigFunction as TwigSimpleFunction;
 use Twig\Extension\AbstractExtension as TwigExtension;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -77,6 +80,7 @@ class Extension extends TwigExtension
             new TwigSimpleFunction('response', [$this, 'responseFunction'], []),
             new TwigSimpleFunction('redirect', [$this, 'redirectFunction'], []),
             new TwigSimpleFunction('abort', [$this, 'abortFunction'], []),
+            new TwigSimpleFunction('flash', [$this, 'flashFunction'], []),
         ];
     }
 
@@ -112,6 +116,7 @@ class Extension extends TwigExtension
             new FlashTokenParser,
             new ScriptsTokenParser,
             new StylesTokenParser,
+            new MetaTokenParser,
         ];
     }
 
@@ -216,7 +221,9 @@ class Extension extends TwigExtension
             return null;
         }
 
-        $result = str_replace('<!-- X_OCTOBER_DEFAULT_BLOCK_CONTENT -->', trim($default), $result);
+        if (is_string($result)) {
+            $result = str_replace('<!-- X_OCTOBER_DEFAULT_BLOCK_CONTENT -->', trim($default), $result);
+        }
 
         return $result;
     }
@@ -232,10 +239,32 @@ class Extension extends TwigExtension
     /**
      * ajaxHandlerFunction runs an ajax handler
      * @param string $name
+     * @param array|null $postVars
      */
-    public function ajaxHandlerFunction($name = '')
+    public function ajaxHandlerFunction($name = '', $postVars = null)
     {
+        if (is_array($postVars)) {
+            Request::merge($postVars);
+        }
+
         return $this->controller->runAjaxHandlerAsResponse($name);
+    }
+
+    /**
+     * flashFunction returns flash messages as an object
+     * @param string $type
+     */
+    public function flashFunction($type = null)
+    {
+        if ($type === 'all') {
+            return Flash::messages();
+        }
+
+        if ($type) {
+            return array_first(Flash::{$type}());
+        }
+
+        return Flash::all();
     }
 
     /**
@@ -263,7 +292,7 @@ class Extension extends TwigExtension
         // Allow headers and interception from Response Maker
         $response = $this->controller->makeResponse($response);
 
-        $this->controller->setResponse($response);
+        throw new HttpResponseException($response);
     }
 
     /**
@@ -273,9 +302,7 @@ class Extension extends TwigExtension
      */
     public function redirectFunction($to, $parameters = [], $code = 302)
     {
-        $this->controller->setResponse(
-            Cms::redirect($to, $parameters, $code)
-        );
+        throw new HttpResponseException(Cms::redirect($to, $parameters, $code));
     }
 
     /**
@@ -298,15 +325,19 @@ class Extension extends TwigExtension
     }
 
     /**
-     * pageFilter looks up the URL for a supplied page and returns it relative to the website root.
-     * @param mixed $name Specifies the Cms Page file name.
-     * @param array $parameters Route parameters to consider in the URL.
-     * @param bool $routePersistence By default the existing routing parameters will be included
-     * when creating the URL, set to false to disable this feature.
+     * pageFilter looks up the URL for a supplied page name and returns it relative to the website root,
+     * including route parameters. Parameters can be persisted from the current page parameters.
+     * @param mixed $name
+     * @param array $parameters
+     * @param bool $routePersistence
      * @return string
      */
     public function pageFilter($name, $parameters = [], $routePersistence = true)
     {
+        if ($name instanceof ThisVariable) {
+            $name = '';
+        }
+
         return $this->controller->pageUrl($name, $parameters, $routePersistence);
     }
 
@@ -328,28 +359,7 @@ class Extension extends TwigExtension
      */
     public function contentFilter($content)
     {
-        $content = PageLookup::processMarkup($content);
-
-        // @todo process snippets markup
-
-        return $content;
-    }
-
-    /**
-     * startBlock opens a layout block.
-     * @param string $name Specifies the block name
-     */
-    public function startBlock($name)
-    {
-        Block::startBlock($name);
-    }
-
-    /**
-     * setBlock sets a block value as a variable.
-     */
-    public function setBlock(string $name, $value)
-    {
-        Block::set($name, $value);
+        return PageManager::processMarkup($content);
     }
 
     /**
@@ -387,10 +397,45 @@ class Extension extends TwigExtension
     }
 
     /**
-     * endBlock closes a layout block.
+     * setBlock sets a block name as a variable value.
+     */
+    public function setBlock(string $name, $value)
+    {
+        Block::set($name, $value);
+    }
+
+    /**
+     * yieldBlock yields the contents of a block by appending or overwriting,
+     * and storing its name alongside the content.
+     */
+    public function yieldBlock(string $name, $callable, $append = true)
+    {
+        $content = '';
+        foreach ($callable() as $value) {
+            $content .= $value;
+        }
+
+        if ($append) {
+            Block::append($name, $content);
+        }
+        else {
+            Block::set($name, $content);
+        }
+    }
+
+    /**
+     * @deprecated use yieldBlock
      */
     public function endBlock($append = true)
     {
         Block::endBlock($append);
+    }
+
+    /**
+     * @deprecated use yieldBlock
+     */
+    public function startBlock($name)
+    {
+        Block::startBlock($name);
     }
 }

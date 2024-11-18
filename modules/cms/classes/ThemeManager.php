@@ -1,6 +1,7 @@
 <?php namespace Cms\Classes;
 
 use Db;
+use App;
 use Lang;
 use Yaml;
 use File;
@@ -13,17 +14,13 @@ use Exception;
 /**
  * ThemeManager
  *
- * @method static ThemeManager instance()
- *
  * @package october\cms
  * @author Alexey Bobkov, Samuel Georges
  */
 class ThemeManager
 {
-    use \October\Rain\Support\Traits\Singleton;
-
     /**
-     * @var array installedThemes is for storing installed themes cache
+     * @var array themes is for storing themes cache
      */
     protected $themes;
 
@@ -36,6 +33,14 @@ class ThemeManager
      * @var array installedThemeDirs is for storing installed themes cache
      */
     protected $installedThemeDirs;
+
+    /**
+     * instance creates a new instance of this singleton
+     */
+    public static function instance(): static
+    {
+        return App::make('cms.themes');
+    }
 
     /**
      * bootAllFrontend
@@ -204,6 +209,20 @@ class ThemeManager
     }
 
     /**
+     * getThemePaths returns an array of themes and their paths.
+     */
+    public function getThemePaths(): array
+    {
+        $result = [];
+
+        foreach ($this->getThemes() as $dirName => $theme) {
+            $result[$dirName] = $theme->getPath();
+        }
+
+        return $result;
+    }
+
+    /**
      * getThemePath returns the disk path for the theme
      */
     public function getThemePath(string $dirName): string
@@ -282,7 +301,7 @@ class ThemeManager
         }
 
         uksort($updates, function ($a, $b) {
-            return version_compare($b, $a);
+            return version_compare((string) $b, (string) $a);
         });
 
         return $updates;
@@ -432,7 +451,7 @@ class ThemeManager
             }
 
             foreach ($required as $require) {
-                if ($manager->hasPlugin($require)) {
+                if (!$require || $manager->hasPlugin($require)) {
                     continue;
                 }
 
@@ -492,7 +511,12 @@ class ThemeManager
         }
 
         // Lock theme
-        File::put($lockFile, 1);
+        try {
+            File::put($lockFile, 1);
+        }
+        catch (Exception $ex) {
+            return false;
+        }
 
         return true;
     }
@@ -511,7 +535,12 @@ class ThemeManager
         }
 
         // Unlock theme
-        File::delete($lockFile);
+        try {
+            File::delete($lockFile);
+        }
+        catch (Exception $ex) {
+            return false;
+        }
 
         return true;
     }

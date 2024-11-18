@@ -20,7 +20,7 @@ use Exception;
 class MediaFinder extends FormWidgetBase
 {
     //
-    // Configurable properties
+    // Configurable Properties
     //
 
     /**
@@ -59,16 +59,8 @@ class MediaFinder extends FormWidgetBase
      */
     public $externalToolbarAppState = null;
 
-    /**
-     * @var string Defines an event bus for an external toolbar.
-     * Must include a module name that exports the Vue application and a state element name.
-     * Format: module.name::eventBus
-     * Only works in Vue applications and form document layouts.
-     */
-    public $externalToolbarEventBus = null;
-
     //
-    // Object properties
+    // Object Properties
     //
 
     /**
@@ -87,8 +79,7 @@ class MediaFinder extends FormWidgetBase
             'imageHeight',
             'maxItems',
             'thumbOptions',
-            'externalToolbarAppState',
-            'externalToolbarEventBus'
+            'externalToolbarAppState'
         ]);
 
         if ($this->formField->disabled || $this->formField->readOnly) {
@@ -135,7 +126,6 @@ class MediaFinder extends FormWidgetBase
         $this->vars['imageWidth'] = $this->imageWidth;
         $this->vars['imageHeight'] = $this->imageHeight;
         $this->vars['externalToolbarAppState'] = $this->externalToolbarAppState;
-        $this->vars['externalToolbarEventBus'] = $this->externalToolbarEventBus;
     }
 
     /**

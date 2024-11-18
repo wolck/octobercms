@@ -1,5 +1,6 @@
 <?php namespace Tailor;
 
+use Url;
 use Event;
 use Backend\Models\UserRole;
 use Tailor\Classes\BlueprintIndexer;
@@ -17,8 +18,10 @@ class ServiceProvider extends ModuleServiceProvider
     {
         parent::register('tailor');
 
+        $this->registerSingletons();
         $this->registerEditorEvents();
         $this->registerConsole();
+        $this->registerRenamedClasses();
 
         $this->extendMigrateCommand();
         $this->extendDeferredBindingForContent();
@@ -80,12 +83,44 @@ class ServiceProvider extends ModuleServiceProvider
     }
 
     /**
+     * registerSingletons
+     */
+    protected function registerSingletons()
+    {
+        $this->app->singleton('tailor.fields', \Tailor\Classes\FieldManager::class);
+        $this->app->singleton('tailor.record.indexer', \Tailor\Classes\RecordIndexer::class);
+        $this->app->singleton('tailor.blueprint.indexer', \Tailor\Classes\BlueprintIndexer::class);
+        $this->app->singleton('tailor.blueprint.verifier', \Tailor\Classes\BlueprintVerifier::class);
+    }
+
+    /**
+     * registerEditorEvents handles Editor events
+     */
+    protected function registerEditorEvents()
+    {
+        Event::listen('editor.extension.register', function () {
+            return \Tailor\Classes\EditorExtension::class;
+        });
+
+        Event::listen('editor.extension.defineYamlSchemas', function () {
+            return [
+                [
+                    'uri' => Url::asset('modules/tailor/assets/js/blueprint-yaml-schema.json'),
+                    'fileMatch' => ['*-blueprint.yaml']
+                ]
+            ];
+        });
+    }
+
+    /**
      * registerConsole
      */
     protected function registerConsole()
     {
         $this->registerConsoleCommand('tailor.refresh', \Tailor\Console\TailorRefresh::class);
         $this->registerConsoleCommand('tailor.migrate', \Tailor\Console\TailorMigrate::class);
+        $this->registerConsoleCommand('tailor.prune', \Tailor\Console\TailorPrune::class);
+        $this->registerConsoleCommand('tailor.propagate', \Tailor\Console\TailorPropagate::class);
     }
 
     /**
@@ -101,20 +136,15 @@ class ServiceProvider extends ModuleServiceProvider
             \Tailor\ContentFields\MarkdownField::class => 'markdown',
             \Tailor\ContentFields\FileUploadField::class => 'fileupload',
             \Tailor\ContentFields\MediaFinderField::class => 'mediafinder',
+            \Tailor\ContentFields\PageFinderField::class => 'pagefinder',
             \Tailor\ContentFields\DataTableField::class => 'datatable',
             \Tailor\ContentFields\NestedFormField::class => 'nestedform',
+            \Tailor\ContentFields\NestedItemsField::class => 'nesteditems',
             \Tailor\ContentFields\DatePickerField::class => 'datepicker',
+            \Tailor\ContentFields\NumberField::class => 'number',
+            \Tailor\ContentFields\TagListField::class => 'taglist',
+            \Tailor\ContentFields\RecordFinderField::class => 'recordfinder',
         ];
-    }
-
-    /**
-     * registerEditorEvents handles Editor events
-     */
-    protected function registerEditorEvents()
-    {
-        Event::listen('editor.extension.register', function () {
-            return \Tailor\Classes\EditorExtension::class;
-        });
     }
 
     /**
@@ -164,5 +194,16 @@ class ServiceProvider extends ModuleServiceProvider
                 return BlueprintIndexer::instance()->resolvePageManagerItem($type, $item, $url, $theme);
             }
         });
+    }
+
+    /**
+     * registerRenamedClasses
+     */
+    protected function registerRenamedClasses()
+    {
+        $this->app->registerClassAliases([
+            \Tailor\Models\EntryRecordImport::class => \Tailor\Models\RecordImport::class,
+            \Tailor\Models\EntryRecordExport::class => \Tailor\Models\RecordExport::class
+        ]);
     }
 }

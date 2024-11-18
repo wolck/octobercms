@@ -1,7 +1,7 @@
 /*
  * Vue Inspector control host implementation
  */
-oc.Module.register('backend.component.inspector.controlhost', function () {
+oc.Modules.register('backend.component.inspector.controlhost', function () {
     Vue.component('backend-component-inspector-controlhost', {
         props: {
             controls: {
@@ -11,6 +11,10 @@ oc.Module.register('backend.component.inspector.controlhost', function () {
             obj: {
                 type: [Object, Array],
                 required: true
+            },
+            parentObj: {
+                type: Object,
+                required: false
             },
             splitterData: {
                 type: Object,

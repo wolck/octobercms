@@ -1,9 +1,9 @@
-oc.Module.register('tailor.editor.extension.documentcontroller.blueprint', function() {
+oc.Modules.register('tailor.editor.extension.documentcontroller.blueprint', function() {
     'use strict';
 
-    const DocumentControllerBase = oc.Module.import('editor.extension.documentcontroller.base');
-    const EditorCommand = oc.Module.import('editor.command');
-    const FileSystemFunctions = oc.Module.import('editor.extension.filesystemfunctions');
+    const DocumentControllerBase = oc.Modules.import('editor.extension.documentcontroller.base');
+    const EditorCommand = oc.Modules.import('editor.command');
+    const FileSystemFunctions = oc.Modules.import('editor.extension.filesystemfunctions');
 
     class DocumentControllerBlueprint extends DocumentControllerBase {
         get documentType() {
@@ -31,17 +31,20 @@ oc.Module.register('tailor.editor.extension.documentcontroller.blueprint', funct
         }
 
         initListeners() {
+            // Controller events
+            this.on(`tailor:${this.documentType}-create-directory`, this.onCreateDirectory);
+            this.on(`tailor:${this.documentType}-delete`, this.onDeleteBlueprintOrDirectory);
+            this.on(`tailor:${this.documentType}-rename`, this.onRenameBlueprintOrDirectory);
+            this.on(`tailor:${this.documentType}-upload`, this.onUploadDocument);
+
+            // Navigator events
             this.on('tailor:navigator-context-menu-display', this.getNavigatorContextMenuItems);
-            this.on('tailor:tailor-blueprint-create-directory', this.onCreateDirectory);
-            this.on('tailor:tailor-blueprint-delete', this.onDeleteBlueprintOrDirectory);
-            this.on('tailor:tailor-blueprint-rename', this.onRenameBlueprintOrDirectory);
-            this.on('tailor:navigator-node-moved', this.onNavigatorNodeMoved);
-            this.on('tailor:tailor-blueprint-upload', this.onUploadDocument);
             this.on('tailor:navigator-external-drop', this.onNavigatorExternalDrop);
+            this.on('tailor:navigator-node-moved', this.onNavigatorNodeMoved);
         }
 
         getNavigatorContextMenuItems(commandObj, payload) {
-            const DocumentUri = oc.Module.import('editor.documenturi');
+            const DocumentUri = oc.Modules.import('editor.documenturi');
             const uri = DocumentUri.parse(payload.nodeData.uniqueKey);
             const parentPath = payload.nodeData.userData.path;
 
@@ -68,15 +71,15 @@ oc.Module.register('tailor.editor.extension.documentcontroller.blueprint', funct
             if (payload.nodeData.userData.isFolder || payload.nodeData.userData.topLevel) {
                 payload.menuItems.push({
                     type: 'text',
-                    icon: 'octo-icon-create',
+                    icon: 'icon-create',
                     items: blueprintItems,
                     label: this.trans('tailor::lang.blueprint.new')
                 });
 
                 payload.menuItems.push({
                     type: 'text',
-                    icon: 'octo-icon-upload',
-                    command: new EditorCommand('tailor:tailor-blueprint-upload@' + this.documentType, {
+                    icon: 'icon-upload',
+                    command: new EditorCommand(`tailor:${this.documentType}-upload@${this.documentType}`, {
                         path: parentPath
                     }),
                     label: this.trans('tailor::lang.blueprint.upload_files')
@@ -84,8 +87,8 @@ oc.Module.register('tailor.editor.extension.documentcontroller.blueprint', funct
 
                 payload.menuItems.push({
                     type: 'text',
-                    icon: 'octo-icon-folder',
-                    command: 'tailor:tailor-blueprint-create-directory@' + parentPath,
+                    icon: 'icon-folder',
+                    command: `tailor:${this.documentType}-create-directory@${parentPath}`,
                     label: this.trans('tailor::lang.blueprint.create_directory')
                 });
 
@@ -100,8 +103,8 @@ oc.Module.register('tailor.editor.extension.documentcontroller.blueprint', funct
 
             payload.menuItems.push({
                 type: 'text',
-                icon: 'octo-icon-terminal',
-                command: new EditorCommand('tailor:tailor-blueprint-rename@' + parentPath, {
+                icon: 'icon-terminal',
+                command: new EditorCommand(`tailor:${this.documentType}-rename@${parentPath}`, {
                     fileName: payload.nodeData.userData.fileName
                 }),
                 label: this.trans('tailor::lang.blueprint.rename')
@@ -109,8 +112,8 @@ oc.Module.register('tailor.editor.extension.documentcontroller.blueprint', funct
 
             payload.menuItems.push({
                 type: 'text',
-                icon: 'octo-icon-delete',
-                command: new EditorCommand('tailor:tailor-blueprint-delete@' + parentPath, {
+                icon: 'icon-delete',
+                command: new EditorCommand(`tailor:${this.documentType}-delete@${parentPath}`, {
                     itemsDetails: payload.itemsDetails
                 }),
                 label: this.trans('tailor::lang.blueprint.delete')
@@ -144,35 +147,58 @@ oc.Module.register('tailor.editor.extension.documentcontroller.blueprint', funct
 
         onCreateDirectory(cmd, payload) {
             const fs = new FileSystemFunctions(this);
-
-            fs.createDirectoryFromNavigatorMenu('onBlueprintCreateDirectory', cmd, payload)
-        }
-
-        onRenameBlueprintOrDirectory(cmd, payload) {
-            const fs = new FileSystemFunctions(this);
-            fs.renameFileOrDirectoryFromNavigatorMenu('onBlueprintRename', cmd, payload);
-        }
-
-        onUploadDocument(cmd) {
-            const fs = new FileSystemFunctions(this);
-
-            fs.uploadDocument(['.yaml'], 'onBlueprintUpload', cmd);
-        }
-
-        onNavigatorExternalDrop(cmd) {
-            const fs = new FileSystemFunctions(this);
-
-            fs.handleNavigatorExternalDrop('onBlueprintUpload', cmd);
+            fs.createDirectoryFromNavigatorMenu('onBlueprintCreateDirectory', cmd, payload, {
+                documentType: this.documentType,
+            });
         }
 
         async onDeleteBlueprintOrDirectory(cmd, payload) {
             const fs = new FileSystemFunctions(this);
-            await fs.deleteFileOrDirectoryFromNavigatorMenu('onBlueprintDelete', cmd, payload);
+            await fs.deleteFileOrDirectoryFromNavigatorMenu('onBlueprintDelete', cmd, payload, {
+                documentType: this.documentType,
+            });
+        }
+
+        onRenameBlueprintOrDirectory(cmd, payload) {
+            const fs = new FileSystemFunctions(this);
+            fs.renameFileOrDirectoryFromNavigatorMenu('onBlueprintRename', cmd, payload, {
+                documentType: this.documentType,
+            });
+        }
+
+        onUploadDocument(cmd) {
+            const fs = new FileSystemFunctions(this);
+            fs.uploadDocument(['.yaml'], 'onBlueprintUpload', cmd, {
+                documentType: this.documentType
+            });
+        }
+
+        onNavigatorExternalDrop(cmd) {
+            const DocumentUri = oc.Modules.import('editor.documenturi');
+            const uri = DocumentUri.parse(cmd.userData.toUniqueKey);
+
+            if (uri.documentType !== this.documentType) {
+                return;
+            }
+
+            const fs = new FileSystemFunctions(this);
+            fs.handleNavigatorExternalDrop('onBlueprintUpload', cmd, {
+                documentType: uri.documentType
+            });
         }
 
         async onNavigatorNodeMoved(cmd) {
+            const DocumentUri = oc.Modules.import('editor.documenturi');
+            const uri = DocumentUri.parse(cmd.userData.movedToNodeData.uniqueKey);
+
+            if (uri.documentType !== this.documentType) {
+                return;
+            }
+
             const fs = new FileSystemFunctions(this);
-            await fs.handleNavigatorNodeMove('onBlueprintMove', cmd);
+            await fs.handleNavigatorNodeMove('onBlueprintMove', cmd, {
+                documentType: uri.documentType
+            });
         }
     }
 

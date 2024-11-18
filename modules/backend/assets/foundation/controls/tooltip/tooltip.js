@@ -17,8 +17,12 @@
 
 (function($){
 
-    $(document).render(function(){
-        $('[data-control="tooltip"], [data-bs-toggle="tooltip"], [data-toggle="tooltip"]').tooltip()
-    })
+    $(document).render(function() {
+        $('[data-control="tooltip"], [data-bs-toggle="tooltip"], [data-toggle="tooltip"]').tooltip();
+    });
+
+    addEventListener('ajax:before-update', function(event) {
+        $('.tooltip.show').remove();
+    });
 
 })(jQuery);

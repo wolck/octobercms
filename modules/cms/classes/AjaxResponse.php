@@ -1,9 +1,10 @@
 <?php namespace Cms\Classes;
 
 use Illuminate\Http\Response;
-use Illuminate\Support\Collection;
 use October\Rain\Exception\ApplicationException;
 use October\Rain\Exception\ValidationException;
+use October\Rain\Exception\ForbiddenException;
+use October\Rain\Exception\NotFoundException;
 use Illuminate\Http\RedirectResponse;
 use ArrayAccess;
 
@@ -16,9 +17,9 @@ use ArrayAccess;
 class AjaxResponse extends Response implements ArrayAccess
 {
     /**
-     * @var array vars are variables included with the result
+     * @var array pageVars are variables included on the page
      */
-    public $vars = [];
+    protected $pageVars = [];
 
     /**
      * @var string ajaxRedirectUrl
@@ -31,17 +32,30 @@ class AjaxResponse extends Response implements ArrayAccess
     protected $ajaxFlashMessages;
 
     /**
-     * addHandlerVars
+     * addPageVars is used internally
      */
-    public function addHandlerVars($vars): static
+    public function addPageVars($vars): static
     {
-        $this->vars = (array) $vars;
+        $this->pageVars = (array) $vars;
 
         return $this;
     }
 
     /**
-     * addFlashMessages
+     * withPageVars includes the page vars in the response. This does not happen by default
+     * for security reasons.
+     */
+    public function withPageVars(): static
+    {
+        $this->original['data'] = array_merge($this->original['data'] ?? [], $this->pageVars);
+
+        $this->setContent($this->original);
+
+        return $this;
+    }
+
+    /**
+     * addFlashMessages is used internally
      */
     public function addFlashMessages($messages): static
     {
@@ -60,15 +74,17 @@ class AjaxResponse extends Response implements ArrayAccess
         }
 
         if (is_string($content)) {
-            $content = ['result' => $content];
+            $data = ['result' => $content];
         }
-
-        if (is_array($content)) {
-            $this->vars = $content  + $this->vars;
+        elseif (is_array($content)) {
+            $data = $content;
+        }
+        else {
+            $data = [];
         }
 
         $response = [
-            'data' => $this->vars
+            'data' => $data
         ];
 
         if ($this->ajaxRedirectUrl) {
@@ -100,6 +116,12 @@ class AjaxResponse extends Response implements ArrayAccess
         }
         elseif ($exception instanceof ApplicationException) {
             $this->setStatusCode(400);
+        }
+        elseif ($exception instanceof ForbiddenException) {
+            $this->setStatusCode(403);
+        }
+        elseif ($exception instanceof NotFoundException) {
+            $this->setStatusCode(404);
         }
         else {
             $this->setStatusCode(500);
@@ -141,7 +163,7 @@ class AjaxResponse extends Response implements ArrayAccess
      */
     public function offsetExists($offset): bool
     {
-        return isset($this->original[$offset]);
+        return isset($this->original[$offset]) || isset($this->pageVars[$offset]);
     }
 
     /**
@@ -165,7 +187,7 @@ class AjaxResponse extends Response implements ArrayAccess
      */
     public function offsetGet($offset): mixed
     {
-        return $this->original[$offset] ?? null;
+        return $this->original[$offset] ?? ($this->pageVars[$offset] ?? null);
     }
 
     /**

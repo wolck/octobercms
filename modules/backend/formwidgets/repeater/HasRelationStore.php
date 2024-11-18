@@ -44,7 +44,7 @@ trait HasRelationStore
         if ($this->isLoaded) {
             $value = $this->getLoadedValueFromPost();
             $ids = is_array($value) ? array_map(function($v) {
-                return $v['_id'] ?? null;
+                return $v['_id'] ?? 0;
             }, $value) : [];
 
             $records = $this->getRelationQuery()->find($ids);
@@ -67,6 +67,13 @@ trait HasRelationStore
             ;
         }
 
+        // Store the results locally on the model to make it available to the
+        // RelationController via the initNestedRelation method
+        if ($this->relatedRecords) {
+            [$model, $attribute] = $this->resolveModelAttribute($this->valueFrom);
+            $model->setRelation($attribute, $model->newCollection($this->relatedRecords));
+        }
+
         return $this->relatedRecords;
     }
 
@@ -85,9 +92,17 @@ trait HasRelationStore
     /**
      * createRelationAtIndex prepares an empty model and adds it to the index
      */
-    protected function createRelationAtIndex(int $index, string $groupCode = null)
+    protected function createRelationAtIndex(int $index, string $groupCode = null, array $attributes = null)
     {
         $model = $this->getRelationModel();
+
+        if ($attributes !== null) {
+            $model->forceFill($attributes);
+
+            if ($this->useGroups && $groupCode === null) {
+                $groupCode = $this->getGroupCodeFromRelation($model);
+            }
+        }
 
         if ($this->useGroups) {
             $this->setGroupCodeOnRelation($model, $groupCode);
@@ -98,6 +113,8 @@ trait HasRelationStore
         $this->getRelationObject()->add($model, $this->getSessionKey());
 
         $this->relatedRecords[$index] = $model;
+
+        return $model;
     }
 
     /**
@@ -132,10 +149,65 @@ trait HasRelationStore
     }
 
     /**
+     * processItemsForRelation processes data and applies it to the form widgets
+     */
+    protected function processItemsForRelation()
+    {
+        $currentValue = $this->getLoadValueFromRelation();
+
+        // Apply default values on first load, under very specific conditions
+        if (
+            !$this->model->exists &&
+            !$this->isLoaded &&
+            !$currentValue &&
+            is_array($this->formField->defaults)
+        ) {
+            $currentValue = [];
+            foreach ($this->formField->defaults as $attributes) {
+                if (is_array($attributes)) {
+                    $currentValue[] = $attributes;
+                }
+            }
+        }
+
+        // Pad current value with minimum items and disable for groups,
+        // which cannot predict their item types
+        if (!$this->useGroups && $this->minItems > 0) {
+            if (!is_array($currentValue)) {
+                $currentValue = [];
+            }
+
+            if (count($currentValue) < $this->minItems) {
+                $currentValue = array_pad($currentValue, $this->minItems, []);
+            }
+        }
+
+        if (!is_array($currentValue)) {
+            return;
+        }
+
+        // Load up the necessary form widgets
+        foreach ($currentValue as $index => $value) {
+            if (is_array($value)) {
+                $value = $this->createRelationAtIndex($index, null, $value);
+            }
+
+            $this->makeItemFormWidget(
+                $index,
+                $this->getGroupCodeFromRelation($value)
+            );
+        }
+    }
+
+    /**
      * processSaveForRelation
      */
     protected function processSaveForRelation($value)
     {
+        if (!is_array($value) || !$value) {
+            return FormField::NO_SAVE_DATA;
+        }
+
         $sortCount = 0;
 
         foreach ($value as $index => $data) {
@@ -148,7 +220,7 @@ trait HasRelationStore
             $saveData = $widget->getSaveData();
 
             // Save data to the model
-            $model = $widget->model;
+            $model = $widget->getModel();
 
             $modelsToSave = $this->prepareModelsToSave($model, $saveData);
 
@@ -162,7 +234,7 @@ trait HasRelationStore
 
             foreach ($modelsToSave as $attrChain => $modelToSave) {
                 try {
-                    $modelToSave->save(null, $widget->getSessionKeyWithSuffix());
+                    $modelToSave->save(['sessionKey' => $widget->getSessionKeyWithSuffix()]);
                 }
                 catch (ValidationException $ve) {
                     $ve->setFieldPrefix(array_merge(

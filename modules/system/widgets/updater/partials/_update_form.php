@@ -18,12 +18,7 @@
 
             </div>
             <div class="modal-footer">
-                <button
-                    type="button"
-                    class="btn btn-default"
-                    data-dismiss="popup">
-                    <?= e(trans('backend::lang.form.cancel')) ?>
-                </button>
+                <?= Ui::button("Cancel")->dismissPopup()->secondary() ?>
             </div>
         </div>
 

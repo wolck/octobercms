@@ -13,10 +13,19 @@
         this.$field = $('input', this.$el);
 
         this.options = options || {};
+        this.allowEmpty = 'selectorAllowEmpty' in this.$el.get(0).dataset;
 
         var self = this;
         $('li', this.$el).click(function(){
             if (self.$el.hasClass('control-disabled')) {
+                return;
+            }
+
+            if (self.allowEmpty && $(this).hasClass('active')) {
+                $(this).removeClass('active');
+                self.$field
+                    .val('')
+                    .trigger('change');
                 return;
             }
 

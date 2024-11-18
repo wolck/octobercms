@@ -93,7 +93,12 @@
             onStart: this.proxy(this.onDragStart),
             onChange: this.proxy(this.onChange),
             onEnd: this.proxy(this.onDragStop),
-            onMove: this.proxy(this.onDragMove)
+            onMove: this.proxy(this.onDragMove),
+
+            // Auto scroll plugin
+            forceAutoScrollFallback: true,
+            scrollSensitivity: 60,
+            scrollSpeed: 20
         };
 
         if (!this.options.dragRow) {
@@ -190,6 +195,10 @@
             self = this,
             $tableBody = this.$tableBody;
 
+        if (!$tableBody) {
+            return;
+        }
+
         $tableBody.addClass('tree-drag-updated').removeClass('tree-drag-mode');
 
         if (this.dragGhost) {
@@ -217,6 +226,7 @@
 
         if (this.options.includeSortOrders) {
             postData.sort_orders = this.getRecordSortData();
+            postData.root_sort_orders = this.getRecordSortData(true);
         }
 
         this.$el.request(this.options.reorderHandler, {
@@ -238,6 +248,7 @@
 
             if (nextRowLevel === proposedLevel) {
                 data.next_id = $nextRow.data('tree-id');
+                data.next_root_id = $nextRow.data('tree-root-id');
                 break;
             }
 
@@ -255,6 +266,7 @@
 
             if (prevRowLevel === proposedLevel) {
                 data.previous_id = $prevRow.data('tree-id');
+                data.previous_root_id = $prevRow.data('tree-root-id');
                 break;
             }
 
@@ -272,6 +284,7 @@
 
             if (prevRowLevel < proposedLevel) {
                 data.parent_id = $prevRow.data('tree-id');
+                data.parent_root_id = $prevRow.data('tree-root-id');
                 break;
             }
 
@@ -281,11 +294,11 @@
         return data;
     }
 
-    ListStructureWidget.prototype.getRecordSortData = function() {
+    ListStructureWidget.prototype.getRecordSortData = function(rootId) {
         var sortOrders = [];
 
         $('[data-tree-id]', this.$tableBody).each(function() {
-            sortOrders.push($(this).data('tree-id'))
+            sortOrders.push($(this).data(rootId ? 'tree-root-id' : 'tree-id'))
         });
 
         return sortOrders;

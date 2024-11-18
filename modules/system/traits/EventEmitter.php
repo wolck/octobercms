@@ -30,7 +30,7 @@ trait EventEmitter
      *
      * @param string $event Event name
      * @param array $params Event parameters
-     * @param boolean $halt Halt after first non-null result
+     * @param bool $halt Halt after first non-null result
      * @return mixed
      */
     public function fireSystemEvent($event, $params = [], $halt = true)
@@ -42,7 +42,7 @@ trait EventEmitter
         $longArgs = array_merge([$this], $params);
 
         // Local event first
-        if ($response = $this->fireEvent($shortEvent, $params, $halt)) {
+        if (!is_null($response = $this->fireEvent($shortEvent, $params, $halt))) {
             if ($halt) {
                 return $response;
             }
@@ -51,7 +51,7 @@ trait EventEmitter
         }
 
         // Global event second
-        if ($response = Event::fire($event, $longArgs, $halt)) {
+        if (!is_null($response = Event::fire($event, $longArgs, $halt))) {
             if ($halt) {
                 return $response;
             }
@@ -59,7 +59,11 @@ trait EventEmitter
             $result = array_merge($result, $response);
         }
 
-        return $result;
+        if ($result) {
+            return $result;
+        }
+
+        return $halt ? null : [];
     }
 
     /**

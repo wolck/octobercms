@@ -16,9 +16,13 @@ use Manifest;
 class System
 {
     /**
-     * @var const keys for manifest storage
+     * @var string MANIFEST_MODULES for manifest storage
      */
     const MANIFEST_MODULES = 'modules.all';
+
+    /**
+     * @var string MANIFEST_DB_CHECK for manifest storage
+     */
     const MANIFEST_DB_CHECK = 'database.check';
 
     /**
@@ -65,7 +69,10 @@ class System
         }
 
         // System comes first
-        $result = array_unique(array_merge(['System'], $result));
+        if ($systemKey = array_search('System', $result)) {
+            unset($result[$systemKey]);
+            array_unshift($result, 'System');
+        }
 
         // Store result
         Manifest::put(self::MANIFEST_MODULES, $result);
@@ -102,6 +109,14 @@ class System
         Manifest::put(self::MANIFEST_DB_CHECK, (bool) $loadedValue);
 
         return $this->hasDatabaseCache = $loadedValue;
+    }
+
+    /**
+     * checkProjectValid
+     */
+    public function checkProjectValid($flag = 2): bool
+    {
+        return (\System\Models\Parameter::getProjectStatusFlag() & $flag) === $flag;
     }
 
     /**

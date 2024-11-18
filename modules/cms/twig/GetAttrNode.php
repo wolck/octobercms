@@ -7,7 +7,7 @@ use Twig\Compiler;
 use Twig\Environment;
 use Twig\Extension\SandboxExtension;
 use Twig\Node\Expression\GetAttrExpression;
-use Illuminate\Support\Collection;
+use Twig\Extension\CoreExtension;
 
 /**
  * GetAttrNode compiles a custom get attribute node.
@@ -86,13 +86,14 @@ class GetAttrNode extends GetAttrExpression
     }
 
     /**
-     * customGetAttribute inherits the logic of twig_get_attribute
+     * customGetAttribute inherits the logic of CoreExtension::getAttribute
      */
     public static function customGetAttribute(Environment $env, Source $source, $object, $item, array $arguments = [], $type = /* Template::ANY_CALL */ 'any', $isDefinedTest = false, $ignoreStrictCheck = false, $sandboxed = false, int $lineno = -1)
     {
         // This will basically disable strict attribute checking for models since they contain
         // dynamic attributes stored in the database or from accessors and should return null
         if ($type !== Template::METHOD_CALL) {
+            // Model specific
             if (
                 $object instanceof \October\Rain\Halcyon\Model ||
                 $object instanceof \October\Rain\Database\Model
@@ -104,7 +105,7 @@ class GetAttrNode extends GetAttrExpression
                 $ignoreStrictCheck = true;
             }
 
-            // Halycon relies on fillable to know what is a certain attribute
+            // Halcyon relies on fillable to know what is a certain attribute
             if ($object instanceof \October\Rain\Halcyon\Model) {
                 if ($object->isFillable($item)) {
                     return $object->$item;
@@ -116,25 +117,23 @@ class GetAttrNode extends GetAttrExpression
             if ($object instanceof \October\Rain\Database\Model) {
                 if (
                     array_key_exists($item, $object->attributes) ||
-                    $object->hasGetMutator($item)
+                    $object->hasGetMutator($item) ||
+                    $object->hasRelation($item)
                 ) {
                     return $object->$item;
-                }
-
-                if ($object->hasRelation($item)) {
-                    $value = $object->$item;
-
-                    // {% if model.relationAsCollection %}
-                    if ($value instanceof Collection) {
-                        $value = $value->count() ? $value : [];
-                    }
-
-                    return $value;
                 }
             }
         }
 
-        return \twig_get_attribute(
+        // In sandbox mode, cast objects to safer versions when calling methods
+        if ($sandboxed && $type === Template::METHOD_CALL && $env->hasExtension(SandboxExtension::class)) {
+            $policy = $env->getExtension(SandboxExtension::class)->getSecurityPolicy();
+            if ($policy instanceof \System\Twig\SecurityPolicy) {
+                $object = $policy->castMethodObjectToSafeObject($object);
+            }
+        }
+
+        return CoreExtension::getAttribute(
             $env,
             $source,
             $object,

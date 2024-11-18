@@ -1,5 +1,7 @@
 <?php namespace Cms\Classes;
 
+use Cms;
+use Site;
 use Lang;
 use October\Rain\Router\Helper as RouterHelper;
 use October\Rain\Filesystem\Definitions as FileDefinitions;
@@ -123,21 +125,6 @@ class Page extends CmsCompoundObject
     }
 
     /**
-     * url helper that makes a URL for a page in the active theme.
-     * @param mixed $page Specifies the Cms Page file name.
-     * @param array $params Route parameters to consider in the URL.
-     * @return string
-     */
-    public static function url($page, array $params = [])
-    {
-        // Reuse existing controller or create a new one, assuming that the method is
-        // called not during the front-end request processing.
-        $controller = Controller::getController() ?: new Controller;
-
-        return $controller->pageUrl($page, $params, true);
-    }
-
-    /**
      * getMenuTypeInfo handler for the pages.menuitem.getTypeInfo event.
      * Returns a menu item type information. The type information is returned as array
      * with the following elements:
@@ -188,7 +175,7 @@ class Page extends CmsCompoundObject
      *   return all available records.
      * - items - an array of arrays with the same keys (url, isActive, items) + the title key.
      *   The items array should be added only if the $item's $nesting property value is TRUE.
-     * @param \RainLab\Pages\Classes\MenuItem $item Specifies the menu item.
+     * @param \Cms\Models\PageLookupItem $item Specifies the menu item.
      * @param string $url Specifies the current page URL, normalized, in lower case
      * @param \Cms\Classes\Theme $theme Specifies the current theme.
      * The URL is specified relative to the website root, it includes the subdirectory name, if any.
@@ -196,23 +183,42 @@ class Page extends CmsCompoundObject
      */
     public static function resolveMenuItem($item, string $url, Theme $theme)
     {
-        $result = null;
+        if ($item->type !== 'cms-page' || !$item->reference) {
+            return null;
+        }
 
-        if ($item->type === 'cms-page') {
-            if (!$item->reference) {
-                return;
+        $page = self::loadCached($theme, $item->reference);
+        $pageUrl = Cms::pageUrl($item->reference, []);
+
+        $result = [];
+        $result['url'] = $pageUrl;
+        $result['isActive'] = $pageUrl == $url;
+        $result['mtime'] = $page ? $page->mtime : null;
+
+        if ($item->sites) {
+            $sites = [];
+            if (Site::hasMultiSite()) {
+                foreach (Site::listEnabled() as $site) {
+                    $sites[] = [
+                        'url' => Cms::siteUrl($page, $site),
+                        'id' => $site->id,
+                        'code' => $site->code,
+                        'locale' => $site->hard_locale,
+                    ];
+                }
             }
 
-            $page = self::loadCached($theme, $item->reference);
-            $controller = Controller::getController() ?: new Controller;
-            $pageUrl = $controller->pageUrl($item->reference, [], false);
-
-            $result = [];
-            $result['url'] = $pageUrl;
-            $result['isActive'] = $pageUrl == $url;
-            $result['mtime'] = $page ? $page->mtime : null;
+            $result['sites'] = $sites;
         }
 
         return $result;
+    }
+
+    /**
+     * @deprecated use \Cms::pageUrl(...)
+     */
+    public static function url($page, array $params = [])
+    {
+        return (Controller::getController() ?: new Controller)->pageUrl($page, $params, true);
     }
 }

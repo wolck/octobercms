@@ -1,29 +1,30 @@
 <?php namespace System\Classes;
 
-use Log;
+use App;
+use Event;
+use Config;
 use Manifest;
+use System\Models\SiteGroup;
 use System\Models\SiteDefinition;
-use October\Rain\Database\Collection;
+use October\Rain\Extension\Extendable;
 use Exception;
 
 /**
  * SiteManager class manages sites
  *
- * @method static SiteManager instance()
- *
  * @package october\system
  * @author Alexey Bobkov, Samuel Georges
  */
-class SiteManager
+class SiteManager extends Extendable
 {
-    use \October\Rain\Support\Traits\Singleton;
+    use \October\Rain\Support\Traits\Emitter;
     use \System\Classes\SiteManager\HasEditSite;
     use \System\Classes\SiteManager\HasActiveSite;
     use \System\Classes\SiteManager\HasSiteContext;
     use \System\Classes\SiteManager\HasPreferredLanguage;
 
     /**
-     * @var const keys for manifest storage
+     * @var string keys for manifest storage
      */
     const MANIFEST_SITES = 'sites.all';
 
@@ -38,26 +39,61 @@ class SiteManager
     protected $siteIdCache = [];
 
     /**
+     * instance creates a new instance of this singleton
+     */
+    public static function instance(): static
+    {
+        return App::make('system.sites');
+    }
+
+    /**
+     * hasFeature returns true if a multisite feature is enabled
+     */
+    public function hasFeature(string $name = null): bool
+    {
+        if (!Config::get('multisite.enabled', true)) {
+            return false;
+        }
+
+        if (!$name) {
+            return true;
+        }
+
+        return (bool) Config::get("multisite.features.{$name}", false);
+    }
+
+    /**
      * getSiteFromRequest locates the site based on the hostname and URI
      */
-    public function getSiteFromRequest(string $host, string $uri)
+    public function getSiteFromRequest(string $rootUrl, string $uri)
     {
-        $sites = $this->listSites()
-            ->where('is_enabled', true)
-            ->filter(function($site) use ($host) {
-                return $site->matchesHostname($host);
-            })
-            ->filter(function($site) use ($uri) {
-                return $site->matchesRoutePrefix($uri);
-            })
-        ;
+        // @deprecated passing a hostname will be removed in v4
+        if (!str_contains($rootUrl, '://')) {
+            $rootUrl = "https://{$rootUrl}";
+        }
 
-        // With multiples, try to target custom URL
+        $sites = $this->listEnabled();
+        $host = parse_url($rootUrl, PHP_URL_HOST);
+
+        // Matching the app URL from the definition
+        $sites = $sites->filter(function($site) use ($rootUrl) {
+            return $site->matchesBaseUrl($rootUrl);
+        });
+
+        // With multiples, match host names
         if ($sites->count() > 1) {
             $sites = $sites->filter(function($site) use ($host) {
-                return $site->matchesBaseUrl($host);
+                return $site->matchesHostname($host);
             });
         }
+
+        // Begin fallback matching
+        $rootSites = $sites;
+
+        // Matching to the route prefix
+        $sites = $sites->filter(function($site) use ($uri) {
+            return $site->matchesRoutePrefix($uri);
+        });
 
         // With multiples, handle prefix collisions
         if ($sites->count() > 1) {
@@ -66,7 +102,14 @@ class SiteManager
             });
         }
 
-        return $sites->first() ?: $this->getPrimarySite();
+        // Found a root host match without any valid prefix
+        if ($rootSites->count() > 0 && $sites->count() === 0) {
+            $sites = $rootSites->each(function($site) {
+                $site->isFallbackMatch = true;
+            });
+        }
+
+        return $sites->first();
     }
 
     /**
@@ -86,7 +129,7 @@ class SiteManager
      */
     public function getPrimarySite()
     {
-        return $this->listSites()->where('is_primary', true)->first();
+        return $this->listSites()->isPrimary()->first();
     }
 
     /**
@@ -102,7 +145,7 @@ class SiteManager
      */
     public function hasAnySite(): bool
     {
-        return $this->listSites()->where('is_enabled', true)->count() > 0;
+        return $this->listEnabled()->count() > 0;
     }
 
     /**
@@ -110,7 +153,15 @@ class SiteManager
      */
     public function hasMultiSite(): bool
     {
-        return $this->listSites()->where('is_enabled', true)->count() > 1;
+        return $this->listEnabled()->count() > 1;
+    }
+
+    /**
+     * hasSiteGroups
+     */
+    public function hasSiteGroups(): bool
+    {
+        return $this->listSites()->where('group', '<>', null)->unique('group')->count() > 1;
     }
 
     /**
@@ -118,15 +169,7 @@ class SiteManager
      */
     public function listEnabled()
     {
-        return $this->listSites()->where('is_enabled', true);
-    }
-
-    /**
-     * listSiteIds
-     */
-    public function listSiteIds()
-    {
-        return $this->listSites()->pluck('id')->all();
+        return $this->listSites()->isEnabled();
     }
 
     /**
@@ -145,10 +188,10 @@ class SiteManager
         }
         else {
             try {
-                $this->sites = SiteDefinition::all();
+                $this->sites = SiteDefinition::with('group')->get();
             }
             catch (Exception $ex) {
-                return new Collection([SiteDefinition::makeFallbackInstance()]);
+                return new SiteCollection([SiteDefinition::makeFallbackInstance()]);
             }
 
             Manifest::put(
@@ -161,18 +204,52 @@ class SiteManager
     }
 
     /**
+     * listSiteIds
+     */
+    public function listSiteIds()
+    {
+        return $this->listSites()->pluck('id')->all();
+    }
+
+    /**
+     * listSiteIdsInGroup
+     */
+    public function listSiteIdsInGroup($siteId = null)
+    {
+        return $this->listSites()->inSiteGroup($siteId)->pluck('id')->all();
+    }
+
+    /**
+     * listSiteIdsInLocale
+     */
+    public function listSiteIdsInLocale($siteId = null)
+    {
+        return $this->listSites()->inSiteLocale($siteId)->pluck('id')->all();
+    }
+
+    /**
      * listSitesFromManifest
      */
     protected function listSitesFromManifest($sites)
     {
         $items = [];
+
         foreach ($sites as $attributes) {
+            $group = null;
+            if ($groupAttrs = array_pull($attributes, 'group')) {
+                $group = new SiteGroup;
+                $group->attributes = $groupAttrs;
+                $group->syncOriginal();
+            }
+
             $site = new SiteDefinition;
+            $site->setRelation('group', $group);
             $site->attributes = $attributes;
             $site->syncOriginal();
             $items[] = $site;
         }
-        return new Collection($items);
+
+        return new SiteCollection($items);
     }
 
     /**
@@ -181,10 +258,33 @@ class SiteManager
     protected function listSitesForManifest($sites)
     {
         $items = [];
+
         foreach ($sites as $site) {
-            $items[] = $site->attributes;
+            $store = $site->attributes;
+            $store['group'] = $site->group ? $site->group->attributes : null;
+            $items[] = $store;
         }
+
         return $items;
+    }
+
+    /**
+     * broadcastSiteChange is a generic event used when the site changes
+     */
+    protected function broadcastSiteChange($siteId)
+    {
+        /**
+         * @event site.changed
+         * Fires when the site has been changed.
+         *
+         * Example usage:
+         *
+         *     Event::listen('site.changed', function($id) {
+         *         \Log::info("Site has been changed to $id");
+         *     });
+         *
+         */
+        Event::fire('site.changed', [$siteId]);
     }
 
     /**
@@ -195,5 +295,34 @@ class SiteManager
         $this->sites = null;
         $this->siteIdCache = [];
         Manifest::forget(self::MANIFEST_SITES);
+    }
+
+    /**
+     * @deprecated
+     */
+    public function listSiteIdsInContext()
+    {
+        return $this->listSiteIdsInGroup();
+    }
+
+    /**
+     * isModelMultisite returns true if the model implements multisite. If an
+     * attribute it will check that the attribute is multisite enabled (not propagated)
+     */
+    public function isModelMultisite($model, $attribute = null): bool
+    {
+        if (
+            $model &&
+            $model->isClassInstanceOf(\October\Contracts\Database\MultisiteInterface::class) &&
+            $model->isMultisiteEnabled()
+        ) {
+            if ($attribute !== null && $model->isAttributePropagatable($attribute)) {
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 }

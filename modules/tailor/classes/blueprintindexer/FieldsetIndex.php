@@ -71,6 +71,7 @@ trait FieldsetIndex
      */
     public function findContentFieldset($contentUuid): ?Fieldset
     {
+        $manager = FieldManager::instance();
         $fieldset = null;
         $config = null;
 
@@ -83,12 +84,12 @@ trait FieldsetIndex
                 $config = $attributes;
             }
             else {
-                $config['fields'] += $attributes['fields'] ?? [];
+                $config['fields'] += $manager->rewriteMixinNames($attributes['fields'] ?? []);
             }
         }
 
         if ($config !== null) {
-            $fieldset = FieldManager::instance()->makeFieldset($config);
+            $fieldset = $manager->makeFieldset($config);
         }
 
         return $fieldset;
@@ -114,10 +115,12 @@ trait FieldsetIndex
         $result = [];
 
         // Sections
-        //
         foreach (EntryBlueprint::listInProject() as $section) {
             if (is_array($section->groups)) {
                 foreach ($section->groups as $group => $definition) {
+                    if (is_array($section->fields)) {
+                        $definition['fields'] = $section->fields + $definition['fields'];
+                    }
                     $uuid = $section->uuid . ':' . $group;
                     $result[$uuid] = [
                         'name' => $definition['name'] ?? $section->name,
@@ -143,7 +146,6 @@ trait FieldsetIndex
         }
 
         // Globals
-        //
         foreach (GlobalBlueprint::listInProject() as $global) {
             $result[$global->uuid] = [
                 'name' => $global->name,

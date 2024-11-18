@@ -13,15 +13,18 @@
 
     <div class="control-tabs content-tabs" data-control="tab">
 
-        <div style="position:absolute; right:0; z-index:2">
-            <a
-                href="javascript:;"
-                data-control="popup"
-                data-handler="<?= $this->updaterWidget->getEventHandler('onSyncProject') ?>"
-                class="btn btn-primary oc-icon-refresh">
-                <?= __("Sync Project") ?>
-            </a>
-        </div>
+
+        <?php if ($projectDetails): ?>
+            <div class="me-2" style="position:absolute;top:0;right:0;z-index:2">
+                <a
+                    href="javascript:;"
+                    data-control="popup"
+                    data-handler="<?= $this->updaterWidget->getEventHandler('onSyncProject') ?>"
+                    class="btn btn-primary oc-icon-refresh">
+                    <?= __("Sync Project") ?>
+                </a>
+            </div>
+        <?php endif ?>
 
         <ul class="nav nav-tabs">
             <?php if ($projectDetails): ?>

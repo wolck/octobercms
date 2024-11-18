@@ -7,7 +7,7 @@
         <?= BrandSetting::renderCss() ?>
     </style>
 <?php endif ?>
-<?php if (EditorSetting::isConfigured()): ?>
+<?php if (EditorSetting::isConfigured() || EditorSetting::isBaseConfigured()): ?>
     <style>
         <?= EditorSetting::renderCss() ?>
     </style>

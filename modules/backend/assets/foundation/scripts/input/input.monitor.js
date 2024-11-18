@@ -32,9 +32,9 @@
         this.$el.on('resume.oc.changeMonitor', this.proxy(this.resume));
         this.$el.on('pauseUnloadListener.oc.changeMonitor', this.proxy(this.pauseUnloadListener));
         this.$el.on('resumeUnloadListener.oc.changeMonitor', this.proxy(this.resumeUnloadListener));
-        this.$el.on('keyup input paste', 'input:not(.ace_search_field), textarea:not(.ace_text-input)', this.proxy(this.onInputChange));
+        this.$el.on('keyup input paste', 'input:not(.ace_search_field):not([data-search-input]), textarea:not(.ace_text-input)', this.proxy(this.onInputChange));
 
-        $('input:not([type=hidden]):not(.ace_search_field), textarea:not(.ace_text-input)', this.$el).each(function() {
+        $('input:not([type=hidden]):not(.ace_search_field):not([data-search-input]), textarea:not(.ace_text-input)', this.$el).each(function() {
             $(this).data('oldval.oc.changeMonitor', $(this).val());
         });
 

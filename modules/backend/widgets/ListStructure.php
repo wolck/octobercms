@@ -1,5 +1,6 @@
 <?php namespace Backend\Widgets;
 
+use Site;
 use Backend;
 use BackendAuth;
 use October\Rain\Database\Model;
@@ -189,10 +190,19 @@ class ListStructure extends Lists
             return $this->onRefresh();
         }
 
-        // Diable structure when sorting
+        // Disable structure when sorting
         $this->disableStructure();
 
         return parent::onSort();
+    }
+
+    /**
+     * onShowStructure
+     */
+    public function onShowStructure()
+    {
+        $this->enableStructure();
+        return $this->onRefresh();
     }
 
     /**
@@ -299,7 +309,7 @@ class ListStructure extends Lists
         if (!$this->model->isClassInstanceOf(\October\Contracts\Database\TreeInterface::class)) {
             $modelClass = get_class($this->model);
             throw new ApplicationException(
-                "To display list as a tree, the model {$modelClass} must implement methods found in October\Contracts\Database\TreeInterface"
+                "To display list as a tree, the model {$modelClass} must implement methods found in October\Contracts\Database\TreeInterface, or set showTree to false"
             );
         }
     }
@@ -331,17 +341,19 @@ class ListStructure extends Lists
             return;
         }
 
-        if ($this->model->isClassInstanceOf(\October\Contracts\Database\NestedSetInterface::class)) {
-            $this->reorderForNestedTree($item);
+        if ($this->fireSystemEvent('backend.list.beforeReorderStructure', [$item], true) === false) {
+            return $this->onRefresh();
+        }
+
+        if (
+            $item->isClassInstanceOf(\October\Contracts\Database\MultisiteInterface::class) &&
+            $item->isMultisiteSyncEnabled() &&
+            $item->getMultisiteConfig('structure', true)
+        ) {
+            $this->reorderForOtherSites($item);
         }
         else {
-            if ($this->model->hasRelation('parent')) {
-                $this->reorderForSimpleTree($item);
-            }
-
-            if ($this->model->isClassInstanceOf(\October\Contracts\Database\SortableInterface::class)) {
-                $this->reorderForSortable($item);
-            }
+            $this->reorderForItem($item);
         }
 
         $this->fireSystemEvent('backend.list.reorderStructure', [$item]);
@@ -350,35 +362,57 @@ class ListStructure extends Lists
     }
 
     /**
-     * reorderForSimpleTree
+     * reorderForOtherSites
      */
-    protected function reorderForSimpleTree($item)
+    protected function reorderForOtherSites($item)
     {
-        $item->parent = post('parent_id');
-        $item->save(['force' => true]);
+        // This query will include the main item itself
+        $otherItems = $item->newOtherSiteQuery()->get();
+        if (!$otherItems || !$otherItems->count()) {
+            return;
+        }
+
+        foreach (Site::listEnabled() as $site) {
+            $otherItem = $otherItems->where('site_id', $site->id)->first();
+            if ($otherItem) {
+                Site::withContext($site->id, function() use ($otherItem) {
+                    $this->reorderForItem($otherItem, true);
+                });
+            }
+        }
     }
 
     /**
-     * reorderForSortable
+     * reorderForItem applies generic reordering logic
      */
-    protected function reorderForSortable($item)
+    protected function reorderForItem($item, $multisite = false)
     {
-        $item->setSortableOrder(post('sort_orders'), $this->includeReferencePool ? null : true);
-    }
+        // Nested Tree
+        if ($this->model->isClassInstanceOf(\October\Contracts\Database\NestedSetInterface::class)) {
+            if ($prevId = post($multisite ? 'previous_root_id' : 'previous_id')) {
+                $item->moveAfter($prevId);
+            }
+            elseif ($nextId = post($multisite ? 'next_root_id' : 'next_id')) {
+                $item->moveBefore($nextId);
+            }
+            elseif ($parentId = post($multisite ? 'parent_root_id' : 'parent_id')) {
+                $item->makeChildOf($parentId);
+            }
+        }
+        else {
+            // Simple Tree
+            if ($this->model->hasRelation('parent')) {
+                $item->parent = post($multisite ? 'parent_root_id' : 'parent_id');
+                $item->save(['force' => true]);
+            }
 
-    /**
-     * reorderForNestedTree
-     */
-    protected function reorderForNestedTree($item)
-    {
-        if ($prevId = post('previous_id')) {
-            $item->moveAfter($prevId);
-        }
-        elseif ($nextId = post('next_id')) {
-            $item->moveBefore($nextId);
-        }
-        elseif ($parentId = post('parent_id')) {
-            $item->makeChildOf($parentId);
+            // Sortable
+            if ($this->model->isClassInstanceOf(\October\Contracts\Database\SortableInterface::class)) {
+                $item->setSortableOrder(
+                    post($multisite ? 'root_sort_orders' : 'sort_orders'),
+                    $this->includeReferencePool ? null : true
+                );
+            }
         }
     }
 

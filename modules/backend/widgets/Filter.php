@@ -23,7 +23,7 @@ class Filter extends WidgetBase implements FilterElement
     use \Backend\Widgets\Filter\HasLegacyDefinitions;
 
     //
-    // Configurable properties
+    // Configurable Properties
     //
 
     /**
@@ -43,12 +43,18 @@ class Filter extends WidgetBase implements FilterElement
     public $context;
 
     /**
-     * @var array|null extraData to pass with the filter requests.
+     * @var string arrayName if the scope element names should be contained in an array.
+     * Eg: `<input name="CustomFilter[scopeName]" />`
      */
-    public $extraData;
+    public $arrayName = 'CustomFilter';
+
+    /**
+     * @var string customPageName will be reset when a filter is applied, shared with the list widget
+     */
+    public $customPageName = 'page';
 
     //
-    // Object properties
+    // Object Properties
     //
 
     /**
@@ -85,8 +91,13 @@ class Filter extends WidgetBase implements FilterElement
             'scopes',
             'model',
             'context',
-            'extraData',
+            'arrayName',
+            'customPageName',
         ]);
+
+        if (!$this->customPageName) {
+            $this->customPageName = '_page';
+        }
 
         $this->initFilterWidgetsConcern();
     }
@@ -129,7 +140,7 @@ class Filter extends WidgetBase implements FilterElement
     {
         $this->vars['cssClasses'] = implode(' ', $this->cssClasses);
         $this->vars['scopes'] = $this->allScopes;
-        $this->vars['extraData'] = (array) $this->extraData;
+        $this->vars['pageName'] = $this->customPageName;
     }
 
     /**
@@ -161,13 +172,16 @@ class Filter extends WidgetBase implements FilterElement
         $this->fireSystemEvent('backend.filter.extendScopesBefore');
 
         // All scopes
-        //
         if (!isset($this->scopes) || !is_array($this->scopes)) {
             $this->scopes = [];
         }
 
-        $this->addScopes($this->scopes);
-        $this->addScopesFromModel();
+        if ($this->scopes) {
+            $this->addScopes($this->scopes);
+        }
+        else {
+            $this->addScopesFromModel();
+        }
 
         /**
          * @event backend.filter.extendScopes
@@ -193,15 +207,14 @@ class Filter extends WidgetBase implements FilterElement
         $this->fireSystemEvent('backend.filter.extendScopes');
 
         // Apply post processing
-        //
         $this->processLegacyDefinitions($this->allScopes);
         $this->processScopeModels($this->allScopes);
         $this->processPermissionCheck($this->allScopes);
+        $this->processAutoOrder($this->allScopes);
         $this->processFilterWidgetScopes($this->allScopes);
         $this->processFieldOptionValues($this->allScopes);
 
         // Set scope values from data source
-        //
         foreach ($this->allScopes as $scope) {
             $scope->setScopeValue($this->getScopeValue($scope));
         }
@@ -210,7 +223,7 @@ class Filter extends WidgetBase implements FilterElement
     }
 
     /**
-     * addScopes programatically, used internally and for extensibility.
+     * addScopes programmatically, used internally and for extensibility.
      */
     public function addScopes(array $scopes)
     {
@@ -247,7 +260,7 @@ class Filter extends WidgetBase implements FilterElement
     }
 
     /**
-     * removeScope programatically, used for extensibility.
+     * removeScope programmatically, used for extensibility.
      * @param string $scopeName
      */
     public function removeScope($scopeName)
@@ -265,7 +278,13 @@ class Filter extends WidgetBase implements FilterElement
         $scopeType = $config['type'] ?? null;
         [$scopeName, $scopeContext] = $this->evalScopeName($name);
 
-        $scope = new FilterScope(['scopeName' => $scopeName]);
+        $scope = new FilterScope([
+            'scopeName' => $scopeName,
+            'arrayName' => $this->arrayName,
+            // @deprecated v4 this should be uncommented
+            // 'idPrefix' => $this->getId()
+        ]);
+
         $scope->useConfig($config);
         $scope->idPrefix($this->getId());
 
@@ -395,10 +414,12 @@ class Filter extends WidgetBase implements FilterElement
         // Condition
         $sqlCondition = $scope->conditions;
         if (is_string($sqlCondition)) {
-            $query->whereRaw(DbDongle::parse(strtr($sqlCondition, [
-                ':filtered' => $scopeValue,
-                ':value' => $scopeValue,
-            ])));
+            // @deprecated adapt legacy format
+            $sqlCondition = str_replace(["':value'", "':filtered'", ':filtered'], ':value', $sqlCondition);
+
+            $query->whereRaw(DbDongle::parse($sqlCondition, [
+                'value' => $scopeValue
+            ]));
             return;
         }
 

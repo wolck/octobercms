@@ -7,7 +7,6 @@
 
     if ($useRowLink) $classes[] = 'list-rowlink';
     if ($showCheckboxes) $classes[] = 'list-checkboxes';
-    if (!$showPagination) $classes[] = 'no-pagination';
 ?>
 <div
     class="control-list <?= implode(' ', $classes) ?>"
@@ -41,13 +40,11 @@
         </table>
         <?php if ($showPagination): ?>
             <div class="list-footer">
-                <div class="list-pagination">
-                    <?php if ($showPageNumbers): ?>
-                        <?= $this->makePartial('list_pagination') ?>
-                    <?php else: ?>
-                        <?= $this->makePartial('list_pagination_simple') ?>
-                    <?php endif ?>
-                </div>
+                <?php if ($showPageNumbers): ?>
+                    <?= $this->makePartial('list_pagination') ?>
+                <?php else: ?>
+                    <?= $this->makePartial('list_pagination_simple') ?>
+                <?php endif ?>
             </div>
         <?php endif ?>
 

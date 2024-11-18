@@ -8,216 +8,202 @@
  *
  * $('html').hotKey({ hotkey: 'ctrl+s, cmd+s', hotkeyVisible: false, callback: doSomething });
  */
-+function ($) { "use strict";
 
-    var Base = $.oc.foundation.base,
-        BaseProto = Base.prototype;
++function () { "use strict";
+    oc.registerControl('input-hotkey', class extends oc.ControlBase {
+        static keyMap = {
+            esc: 27,
+            tab: 9,
+            space: 32,
+            return: 13,
+            enter: 13,
+            backspace: 8,
+            scroll: 145,
+            capslock: 20,
+            numlock: 144,
+            pause: 19,
+            break: 19,
+            insert: 45,
+            home: 36,
+            delete: 46,
+            suppr: 46,
+            end: 35,
+            pageup: 33,
+            pagedown: 34,
+            left: 37,
+            up: 38,
+            right: 39,
+            down: 40,
+            f1: 112,
+            f2: 113,
+            f3: 114,
+            f4: 115,
+            f5: 116,
+            f6: 117,
+            f7: 118,
+            f8: 119,
+            f9: 120,
+            f10: 121,
+            f11: 122,
+            f12: 123
+        };
 
-    var HotKey = function (element, options) {
-        if (!options.hotkey) {
-            throw new Error('No hotkey has been defined.');
+        init() {
+            if (this.config.hotkey === false) {
+                throw new Error('No hotkey has been defined.');
+            }
+
+            this.hotkeyTarget = this.config.hotkeyTarget || 'html';
+            this.hotkeyVisible = this.config.hotkeyVisible !== false;
+
+            this.callbackFunc = this.element.ocHotKeyControlCallback || function(element) {
+                element.dispatchEvent(new MouseEvent('click', {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window
+                }));
+                return false;
+            };
         }
 
-        this.$el = $(element);
-        this.$target = $(options.hotkeyTarget);
-        this.options = options || {};
-        this.keyConditions = [];
-        this.keyMap = null;
+        connect() {
+            this.initKeyConditions();
 
-        $.oc.foundation.controlUtils.markDisposable(element);
+            this.$target = document.querySelector(this.hotkeyTarget);
 
-        Base.call(this);
-
-        this.initKeyMap();
-        this.initKeyConditions();
-
-        this.$target.on('keydown', this.proxy(this.onKeyDown));
-        this.$el.one('dispose-control', this.proxy(this.dispose));
-    }
-
-    HotKey.prototype = Object.create(BaseProto)
-    HotKey.prototype.constructor = HotKey
-
-    HotKey.prototype.dispose = function() {
-        if (this.$el) {
-            this.$el.off('dispose-control', this.proxy(this.dispose));
-            this.$el.removeData('oc.hotkey')
+            oc.Events.on(this.$target, 'keydown', this.proxy(this.onKeyDown));
         }
 
-        if (this.$target) {
-            this.$target.off('keydown', this.proxy(this.onKeyDown));
+        disconnect() {
+            this.keyConditions = null;
+
+            oc.Events.off(this.$target, 'keydown', this.proxy(this.onKeyDown));
+
+            this.$target = null;
         }
 
-        this.$target = null;
-        this.$el = null;
-        this.keyConditions = null;
-        this.keyMap = null;
-        this.options = null;
+        onKeyDown(ev) {
+            if (this.testConditions(ev)) {
+                if (this.hotkeyVisible && !this.isVisible(this.element)) {
+                    return;
+                }
 
-        BaseProto.dispose.call(this);
-    }
+                var activeContainer = oc.popupStacker && oc.popupStacker.getFirstPopup();
+                if (activeContainer && !activeContainer.contains(this.element)) {
+                    return;
+                }
 
-    HotKey.prototype.initKeyConditions = function() {
-        var keys = this.options.hotkey.toLowerCase().split(',');
-
-        for (var i = 0, len = keys.length; i < len; i++) {
-            var keysTrimmed = this.trim(keys[i]);
-            this.keyConditions.push(this.makeCondition(keysTrimmed));
-        }
-    }
-
-    HotKey.prototype.makeCondition = function(keyBind) {
-        var condition = { shift: false, ctrl: false, cmd: false, alt: false, specific: -1 },
-            keys = keyBind.split('+');
-
-        for (var i = 0, len = keys.length; i < len; i++) {
-            switch (keys[i]) {
-                case 'shift':
-                    condition.shift = true;
-                    break;
-                case 'ctrl':
-                    condition.ctrl = true;
-                    break;
-                case 'command':
-                case 'cmd':
-                case 'meta':
-                    condition.cmd = true;
-                    break;
-                case 'alt':
-                case 'option':
-                    condition.alt = true;
-                    break;
+                if (
+                    this.callbackFunc &&
+                    !this.callbackFunc(this.element, ev.currentTarget, ev)
+                ) {
+                    ev.preventDefault();
+                }
             }
         }
 
-        condition.specific = this.keyMap[keys[keys.length-1]];
-
-        if (typeof (condition.specific) == 'undefined') {
-            condition.specific = keys[keys.length-1].toUpperCase().charCodeAt();
+        isVisible(el) {
+            return el.offsetWidth > 0 && el.offsetHeight > 0;
         }
 
-        return condition;
-    }
+        initKeyConditions() {
+            this.keyConditions = [];
+            var keys = this.config.hotkey.toLowerCase().split(',');
 
-    HotKey.prototype.initKeyMap = function() {
-        this.keyMap = {
-            'esc':       27,
-            'tab':       9,
-            'space':     32,
-            'return':    13,
-            'enter':     13,
-            'backspace': 8,
-            'scroll':    145,
-            'capslock':  20,
-            'numlock':   144,
-            'pause':     19,
-            'break':     19,
-            'insert':    45,
-            'home':      36,
-            'delete':    46,
-            'suppr':     46,
-            'end':       35,
-            'pageup':    33,
-            'pagedown':  34,
-            'left':      37,
-            'up':        38,
-            'right':     39,
-            'down':      40,
-            'f1':        112,
-            'f2':        113,
-            'f3':        114,
-            'f4':        115,
-            'f5':        116,
-            'f6':        117,
-            'f7':        118,
-            'f8':        119,
-            'f9':        120,
-            'f10':       121,
-            'f11':       122,
-            'f12':       123
-        }
-    }
-
-    HotKey.prototype.trim = function(str) {
-        return str
-            .replace(/^\s+/, "")
-            .replace(/\s+$/, "")
-    }
-
-    HotKey.prototype.testConditions = function(ev) {
-        for (var i = 0, len = this.keyConditions.length; i < len; i++) {
-            var condition = this.keyConditions[i]
-
-            if (ev.which === condition.specific
-                && ev.originalEvent.shiftKey === condition.shift
-                && ev.originalEvent.ctrlKey === condition.ctrl
-                && ev.originalEvent.metaKey === condition.cmd
-                && ev.originalEvent.altKey === condition.alt) {
-                return true
+            for (var i = 0, len = keys.length; i < len; i++) {
+                var keysTrimmed = this.trim(keys[i]);
+                this.keyConditions.push(this.makeCondition(keysTrimmed));
             }
         }
 
-        return false
-    }
+        makeCondition(keyBind) {
+            var condition = { shift: false, ctrl: false, cmd: false, alt: false, specific: -1 },
+                keys = keyBind.split('+');
 
-    HotKey.prototype.onKeyDown = function(ev) {
-        if (this.testConditions(ev)) {
-            if (this.options.hotkeyVisible && !this.$el.is(':visible')) {
-                return;
+            for (var i = 0, len = keys.length; i < len; i++) {
+                switch (keys[i]) {
+                    case 'shift':
+                        condition.shift = true;
+                        break;
+                    case 'ctrl':
+                        condition.ctrl = true;
+                        break;
+                    case 'command':
+                    case 'cmd':
+                    case 'meta':
+                        condition.cmd = true;
+                        break;
+                    case 'alt':
+                    case 'option':
+                        condition.alt = true;
+                        break;
+                }
             }
 
-            if (this.options.callback) {
-                return this.options.callback(this.$el.get(0), ev.currentTarget, ev);
+            condition.specific = this.constructor.keyMap[keys[keys.length-1]];
+
+            if (typeof (condition.specific) == 'undefined') {
+                condition.specific = keys[keys.length-1].toUpperCase().charCodeAt();
             }
+
+            return condition;
         }
-    }
 
-    HotKey.DEFAULTS = {
-        hotkey: null,
-        hotkeyTarget: 'html',
-        hotkeyVisible: true,
-        callback: function(element) {
-            element.dispatchEvent(new MouseEvent('click', {
-                bubbles: true,
-                cancelable: true,
-                view: window
-            }));
+        trim(str) {
+            return str
+                .replace(/^\s+/, "")
+                .replace(/\s+$/, "")
+        }
+
+        testConditions(ev) {
+            for (var i = 0, len = this.keyConditions.length; i < len; i++) {
+                var condition = this.keyConditions[i]
+                var code = ev.which ? ev.which : ev.keyCode;
+
+                if (
+                    code === condition.specific &&
+                    ev.shiftKey === condition.shift &&
+                    ev.ctrlKey === condition.ctrl &&
+                    ev.metaKey === condition.cmd &&
+                    ev.altKey === condition.alt
+                ) {
+                    return TextTrackCue;
+                }
+            }
+
             return false;
         }
-    }
-
-    // HOTKEY PLUGIN DEFINITION
-    // ============================
-
-    var old = $.fn.hotKey
-
-    $.fn.hotKey = function (option) {
-        var args = arguments;
-
-        return this.each(function () {
-            var $this   = $(this)
-            var data    = $this.data('oc.hotkey')
-            var options = $.extend({}, HotKey.DEFAULTS, $this.data(), typeof option == 'object' && option)
-            if (!data) $this.data('oc.hotkey', (data = new HotKey(this, options)))
-            if (typeof option == 'string') data[option].apply(data, args)
-        })
-    }
-
-    $.fn.hotKey.Constructor = HotKey
-
-    // HOTKEY NO CONFLICT
-    // =================
-
-    $.fn.hotKey.noConflict = function () {
-        $.fn.hotKey = old;
-        return this;
-    }
-
-    // HOTKEY DATA-API
-    // ==============
-
-    $(document).render(function() {
-        $('[data-hotkey]').hotKey();
     });
 
-}(window.jQuery);
+    // MAGIC ATTRIBUTE
+    // ============================
+
+    addEventListener('render', () => {
+        document.querySelectorAll('[data-hotkey]:not([data-control~="input-hotkey"])').forEach((element) => {
+            element.dataset.control = ((element.dataset.control || '') + ' input-hotkey').trim();
+        });
+    });
+
+    // JQUERY PLUGIN DEFINITION
+    // ============================
+
+    $.fn.hotKey = function (config) {
+        this.each((index, element) => {
+            config = config || {};
+            for (const key in config) {
+                if (key.startsWith('hotkey')) {
+                    element.dataset[key] = config[key];
+                }
+            }
+
+            if (config.callback) {
+                element.ocHotKeyControlCallback = config.callback;
+            }
+
+            if (!element.matches('[data-control~="input-hotkey"]')) {
+                element.dataset.control = ((element.dataset.control || '') + ' input-hotkey').trim();
+            }
+        });
+    };
+
+}();

@@ -11,9 +11,14 @@ use Backend\Classes\FilterScope;
 abstract class FilterWidgetBase extends WidgetBase
 {
     /**
-     * @var \October\Rain\Database\Model model object for the filter.
+     * @var \October\Rain\Database\Model|null model is the related model object for the filter.
      */
     public $model;
+
+    /**
+     * @var bool isJsonable determines if the filtered column is stored as JSON in the database.
+     */
+    public $isJsonable;
 
     /**
      * @var FilterScope filterScope object containing general filter scope information.
@@ -21,12 +26,12 @@ abstract class FilterWidgetBase extends WidgetBase
     protected $filterScope;
 
     /**
-     * @var string scopeName
+     * @var string scopeName contains the raw scope name
      */
     protected $scopeName;
 
     /**
-     * @var string valueFrom
+     * @var string valueFrom contains the attribute value source
      */
     protected $valueFrom;
 
@@ -50,6 +55,7 @@ abstract class FilterWidgetBase extends WidgetBase
 
         $this->fillFromConfig([
             'model',
+            'isJsonable',
             'parentFilter',
         ]);
 
@@ -73,15 +79,19 @@ abstract class FilterWidgetBase extends WidgetBase
     }
 
     /**
-     * getScopeName
+     * getScopeName returns the HTML element field name for this widget, used for
+     * capturing user input, passed back to the getSaveValue method when saving.
+     * @return string
      */
     public function getScopeName()
     {
-        return $this->filterScope->scopeName;
+        return $this->filterScope->getName();
     }
 
     /**
-     * getLoadValue
+     * getLoadValue returns the value for this form field,
+     * supports nesting via HTML array.
+     * @return string
      */
     public function getLoadValue()
     {
@@ -105,7 +115,7 @@ abstract class FilterWidgetBase extends WidgetBase
             return null;
         }
 
-        return post('Filter');
+        return post($this->getScopeName(), post("Filter"));
     }
 
     /**
@@ -128,6 +138,11 @@ abstract class FilterWidgetBase extends WidgetBase
      */
     protected function hasPostValue($name): bool
     {
-        return strlen(trim(post("Filter[{$name}]"))) > 0;
+        $value = post(
+            $this->getScopeName() . "[{$name}]",
+            post("Filter[{$name}]")
+        );
+
+        return strlen(trim((string) $value)) > 0;
     }
 }

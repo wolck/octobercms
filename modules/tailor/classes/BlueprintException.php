@@ -1,6 +1,5 @@
 <?php namespace Tailor\Classes;
 
-use File;
 use Exception;
 
 /**

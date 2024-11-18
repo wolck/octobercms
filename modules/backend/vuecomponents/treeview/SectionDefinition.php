@@ -11,6 +11,11 @@ use Backend\VueComponents\DropdownMenu\ItemDefinition;
 class SectionDefinition
 {
     /**
+     * @var string label
+     */
+    protected $label;
+
+    /**
      * @var string key
      */
     protected $key;
@@ -24,11 +29,6 @@ class SectionDefinition
      * @var mixed createMenuItems
      */
     protected $createMenuItems = null;
-
-    /**
-     * @var string label
-     */
-    protected $label;
 
     /**
      * @var array nodes

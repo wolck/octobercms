@@ -1,39 +1,35 @@
 <?php
-    $fieldOptions = $field->options();
+    $fieldOptions = $field->asOptionsDefinition();
     $inlineOptions = $field->inlineOptions;
 ?>
 <!-- Radio List -->
 <?php if (count($fieldOptions)): ?>
+    <?php if ($inlineOptions): ?><div><?php endif ?>
+        <?php foreach ($fieldOptions as $value => $option): ?>
+            <?php
+                $radioId = 'checkbox_'.$field->getId().'_'.$value;
+            ?>
+            <div class="form-check <?= $inlineOptions ? 'form-check-inline' : '' ?>">
+                <input
+                    class="form-check-input"
+                    id="<?= $radioId ?>"
+                    name="<?= $field->getName() ?>"
+                    value="<?= e($value) ?>"
+                    type="radio"
+                    <?= $field->isSelected($value) ? 'checked' : '' ?>
+                    <?= $this->previewMode || $option->disabled ? 'disabled' : '' ?>
+                    <?= $field->getAttributes() ?>
+                />
 
-    <?php $index = 0; foreach ($fieldOptions as $value => $option): ?>
-        <?php
-            $index++;
-            if (is_string($option))
-                $option = array($option);
-
-            $fieldId = md5(uniqid($field->getId($index), true));
-        ?>
-        <div class="form-check <?= $inlineOptions ? 'form-check-inline' : '' ?>">
-            <input
-                class="form-check-input"
-                id="<?= $fieldId ?>"
-                name="<?= $field->getName() ?>"
-                value="<?= e($value) ?>"
-                type="radio"
-                <?= $field->isSelected($value) ? 'checked="checked"' : '' ?>
-                <?= $this->previewMode ? 'disabled="disabled"' : '' ?>
-                <?= $field->getAttributes() ?>
-            />
-
-            <label class="form-check-label" for="<?= $fieldId ?>">
-                <?= e(__($option[0])) ?>
-            </label>
-            <?php if (isset($option[1])): ?>
-                <p class="form-text"><?= e(__($option[1])) ?></p>
-            <?php endif ?>
-        </div>
-    <?php endforeach ?>
-
+                <label class="form-check-label" for="<?= $radioId ?>">
+                    <?= $field->getDisplayValue($option->label) ?>
+                </label>
+                <?php if ($option->comment && strlen($option->comment)): ?>
+                    <p class="form-text"><?= $field->getDisplayValue($option->comment) ?></p>
+                <?php endif ?>
+            </div>
+        <?php endforeach ?>
+    <?php if ($inlineOptions): ?></div><?php endif ?>
 <?php else: ?>
 
     <!-- No options specified -->

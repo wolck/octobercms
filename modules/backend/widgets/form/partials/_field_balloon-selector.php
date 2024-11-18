@@ -1,15 +1,18 @@
 <?php
+    $emptyOption = $field->getConfig('allowEmpty');
     $fieldOptions = $field->options();
 ?>
 <!-- Balloon selector -->
 <div
-    data-control="balloon-selector"
     id="<?= $field->getId() ?>"
     class="control-balloon-selector <?= $this->previewMode || $field->disabled ? 'control-disabled' : '' ?>"
-    <?= $field->getAttributes() ?>>
+    data-control="balloon-selector"
+    <?= $emptyOption ? 'data-selector-allow-empty' : '' ?>
+    <?= $field->getAttributes() ?>
+>
     <ul>
         <?php foreach ($fieldOptions as $value => $text): ?>
-            <li data-value="<?= e($value) ?>" class="<?= $field->isSelected($value) ? 'active' : '' ?>"><?= e(__($text)) ?></li>
+            <li data-value="<?= e($value) ?>" class="<?= $field->isSelected($value) ? 'active' : '' ?>"><?= $field->getDisplayValue($text) ?></li>
         <?php endforeach ?>
     </ul>
 

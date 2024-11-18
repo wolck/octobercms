@@ -59,7 +59,7 @@
                         <div class="update-item">
                             <div class="item-header">
                                 <h5>
-                                    <i class="icon-picture-o"></i>
+                                    <i class="icon-photo"></i>
                                     <?= e(array_get($theme, 'name', 'Unknown')) ?>
                                 </h5>
                             </div>
@@ -148,12 +148,7 @@
                 data-keyboard="false">
                 <?= e(trans('system::lang.updates.update_label')) ?>
             </button>
-            <button
-                type="button"
-                class="btn btn-default"
-                data-dismiss="popup">
-                <?= e(trans('backend::lang.form.cancel')) ?>
-            </button>
+            <?= Ui::button("Cancel")->dismissPopup()->secondary() ?>
         </div>
 
     <?php else: ?>
@@ -187,12 +182,7 @@
         <p class="flash-message static error"><?= e(__($this->fatalError)) ?></p>
     </div>
     <div class="modal-footer">
-        <button
-            type="button"
-            class="btn btn-default"
-            data-dismiss="popup">
-            <?= e(trans('backend::lang.form.close')) ?>
-        </button>
+        <?= Ui::button(__("Close"))->dismissPopup()->secondary() ?>
     </div>
 
 <?php endif ?>

@@ -1,9 +1,9 @@
-oc.Module.register('editor.store', function() {
+oc.Modules.register('editor.store', function() {
     'use strict';
 
-    const StoreTabManager = oc.Module.import('editor.store.tabmanager');
-    const EditorCommand = oc.Module.import('editor.command');
-    const DocumentUri = oc.Module.import('editor.documenturi');
+    const StoreTabManager = oc.Modules.import('editor.store.tabmanager');
+    const EditorCommand = oc.Modules.import('editor.command');
+    const DocumentUri = oc.Modules.import('editor.documenturi');
 
     class EditorStore {
         state = {};
@@ -72,8 +72,16 @@ oc.Module.register('editor.store', function() {
                     documentType: documentType ? documentType : ''
                 })
                 .then((data) => {
-                    this.getExtension(namespace).updateNavigatorSections(data.sections, documentType);
-                    this.triggerDocumentNodesUpdatedEvent(new DocumentUri(namespace, documentType, null));
+                    if (data.multiSections) {
+                        Object.keys(data.multiSections).forEach((namespace) => {
+                            this.getExtension(namespace).updateNavigatorSections(data.multiSections[namespace], documentType);
+                            this.triggerDocumentNodesUpdatedEvent(new DocumentUri(namespace, documentType, null));
+                        });
+                    }
+                    else {
+                        this.getExtension(namespace).updateNavigatorSections(data.sections, documentType);
+                        this.triggerDocumentNodesUpdatedEvent(new DocumentUri(namespace, documentType, null));
+                    }
                 });
         }
 
@@ -86,11 +94,11 @@ oc.Module.register('editor.store', function() {
                 }
 
                 const extensionClassNamespace = 'editor.extension.' + namespace + '.main';
-                if (!oc.Module.exists(extensionClassNamespace)) {
+                if (!oc.Modules.exists(extensionClassNamespace)) {
                     throw new Error(`Editor extension module is not registered: ${extensionClassNamespace}`);
                 }
 
-                const ExtensionClass = oc.Module.import(extensionClassNamespace);
+                const ExtensionClass = oc.Modules.import(extensionClassNamespace);
                 const extension = new ExtensionClass(namespace);
                 const extensionInitialState = extensionStates[namespace];
 

@@ -7,7 +7,6 @@ use Yaml;
 use Lang;
 use Cms\Helpers\File as FileHelper;
 use October\Rain\Extension\Extendable;
-use System\Classes\PluginManager;
 use ApplicationException;
 use ValidationException;
 use DirectoryIterator;
@@ -21,6 +20,8 @@ use Exception;
  */
 class Blueprint extends Extendable
 {
+    use \Tailor\Classes\Blueprint\HasDatasources;
+
     /**
      * @var array attributes for the template, taken from the config
      */
@@ -72,16 +73,6 @@ class Blueprint extends Extendable
     protected static $booted = [];
 
     /**
-     * @var array resolvedPlugins
-     */
-    protected static $resolvedPlugins = [];
-
-    /**
-     * @var string datasource is the data source for the model, a directory path.
-     */
-    protected $datasource;
-
-    /**
      * __construct
      */
     public function __construct(array $attributes = [])
@@ -109,36 +100,6 @@ class Blueprint extends Extendable
      */
     protected static function boot()
     {
-        static::bootDefaultPlugins();
-    }
-
-    /**
-     * bootDefaultPlugins
-     */
-    protected static function bootDefaultPlugins()
-    {
-        self::$resolvedPlugins = [];
-
-        try {
-            $plugins = PluginManager::instance()->getPluginPaths();
-            foreach ($plugins as $code => $path) {
-                if (file_exists($bpPath = $path . '/blueprints')) {
-                    self::$resolvedPlugins[$code] = $bpPath;
-                }
-            }
-        }
-        catch (Exception $ex) {
-        }
-    }
-
-    /**
-     * inDatasource prepares the datasource for the model.
-     */
-    public static function inDatasource($path)
-    {
-        $obj = new static;
-        $obj->datasource = $path;
-        return $obj;
     }
 
     /**
@@ -170,13 +131,22 @@ class Blueprint extends Extendable
      */
     public static function listInProject(array $options = []): BlueprintCollection
     {
-        $results = (new static())->get($options);
+        $results = (new static)->get($options);
 
-        $plugins = array_pull($options, 'plugins', self::$resolvedPlugins);
+        $plugins = array_pull($options, 'plugins', self::getDefaultPlugins());
 
         foreach ($plugins as $path) {
             $results = array_merge(
                 static::inDatasource($path)->get($options),
+                $results,
+            );
+        }
+
+        $themes = array_pull($options, 'themes', self::getDefaultThemes());
+
+        foreach ($themes as $dirName => $path) {
+            $results = array_merge(
+                static::inDatasource($path, $dirName)->get($options),
                 $results,
             );
         }
@@ -211,7 +181,7 @@ class Blueprint extends Extendable
             }
 
             if (isset($item['datasource'])) {
-                $blueprint = static::inDatasource($item['datasource'])->find($item['path']);
+                $blueprint = static::inDatasource($item['datasource'], $item['datasourceTheme'] ?? null)->find($item['path']);
             }
             else {
                 $blueprint = static::load($item['path']);
@@ -278,6 +248,10 @@ class Blueprint extends Extendable
 
             if ($this->datasource) {
                 $template['datasource'] = $this->datasource;
+            }
+
+            if ($this->datasourceTheme) {
+                $template['datasourceTheme'] = $this->datasourceTheme;
             }
 
             $templates[] = $template;
@@ -370,6 +344,11 @@ class Blueprint extends Extendable
         // Slugify handle for URLs
         $this->attributes['handleSlug'] = snake_case(str_replace('\\', ' ', $this->handle));
 
+        // Theme for filtering
+        if ($this->datasourceTheme) {
+            $this->attributes['_theme'] = $this->datasourceTheme;
+        }
+
         return $this->promoteToTypeClass();
     }
 
@@ -426,7 +405,7 @@ class Blueprint extends Extendable
         }
 
         $newObj = $this->datasource
-            ? $className::inDatasource($this->datasource)
+            ? $className::inDatasource($this->datasource, $this->datasourceTheme)
             : new $className;
 
         $newObj->fileName = $this->fileName;
@@ -593,11 +572,12 @@ class Blueprint extends Extendable
     }
 
     /**
-     * getMetaData
+     * getMetaData returns meta data for the content schema table
      */
-    public function getMetaData()
+    public function getMetaData(): array
     {
         return [
+            'blueprint_uuid' => $this->uuid,
             'blueprint_type' => $this->type
         ];
     }

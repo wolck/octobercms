@@ -2,6 +2,7 @@
 
 use Lang;
 use Flash;
+use Backend;
 use Redirect;
 use BackendMenu;
 use Tailor\Models\GlobalRecord;
@@ -32,7 +33,7 @@ class Globals extends WildcardController
     public $formConfig = 'config_form.yaml';
 
     /**
-     * @var GlobalBlueprint activeSource
+     * @var \Tailor\Classes\Blueprint\GlobalBlueprint activeSource
      */
     protected $activeSource;
 
@@ -64,13 +65,17 @@ class Globals extends WildcardController
             return;
         }
 
-        $this->pageTitle = 'Update Global';
+        $this->setPageTitleFromMessage('titleUpdateForm', "Update Global");
+        $this->pageSize = Backend::sizeToPixels($this->activeSource->formSize ?? 950) ?: null;
 
         // Uses "create" context to enable default values on newly introduced fields
         $response = $this->asExtension('FormController')->update(null, FormField::CONTEXT_CREATE);
         if ($response) {
             return $response;
         }
+
+        // Disable site switcher prompt
+        $this->getWidget('siteSwitcher')->setSwitchHandler(null);
 
         $this->prepareVars();
     }
@@ -93,6 +98,16 @@ class Globals extends WildcardController
     }
 
     /**
+     * onCancel
+     */
+    public function onCancel()
+    {
+        $this->asExtension('FormController')->update_onCancel();
+
+        return Redirect::refresh();
+    }
+
+    /**
      * onResetDefault AJAX handler
      */
     public function onResetDefault()
@@ -104,6 +119,14 @@ class Globals extends WildcardController
         Flash::success(Lang::get('backend::lang.form.reset_success'));
 
         return Redirect::refresh();
+    }
+
+    /**
+     * formGetRedirectUrl
+     */
+    public function formGetRedirectUrl($context = null, $model = null): string
+    {
+        return 'tailor/globals/'.$this->activeSource->handleSlug;
     }
 
     /**
@@ -174,6 +197,29 @@ class Globals extends WildcardController
     }
 
     /**
+     * setPageTitleMessage
+     */
+    protected function setPageTitleFromMessage(string $message, string $defaultMessage = 'Tailor')
+    {
+        $global = $this->activeSource;
+
+        if (!$global) {
+            $this->pageTitle = $defaultMessage;
+            return;
+        }
+
+        $vars = [
+            'name' => $global->name
+        ];
+
+        $this->pageTitle = $global->getMessage(
+            $message,
+            $this->customMessages[$message] ?? $defaultMessage,
+            $vars
+        );
+    }
+
+    /**
      * findSingularModelObjectWithFallback
      */
     protected function findSingularModelObjectWithFallback()
@@ -191,7 +237,7 @@ class Globals extends WildcardController
         }
 
         // Try by removing the multisite restriction
-        $record = GlobalRecord::inGlobalUuid($uuid)->withSites()->first();
+        $record = GlobalRecord::inGlobalUuid($uuid)->withSyncSites()->first();
         if ($record) {
             return $record;
         }

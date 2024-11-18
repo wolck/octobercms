@@ -8,6 +8,7 @@ use SystemException;
 use ApplicationException;
 use Tailor\Classes\EditorExtension;
 use Tailor\Classes\Blueprint;
+use Tailor\Classes\ThemeBlueprint;
 use Editor\Classes\ApiHelpers;
 use Tailor\Classes\BlueprintIndexer;
 use Tailor\Classes\BlueprintException;
@@ -173,13 +174,16 @@ trait HasExtensionCrud
         $this->editorMoveFilesOrDirectories($this->getBlueprintsPath(), $selectedList, $destinationDir);
     }
 
+    /**
+     * command_onBlueprintUpload
+     */
     protected function command_onBlueprintUpload()
     {
         $this->editorUploadFiles($this->getBlueprintsPath(), ['yaml']);
     }
 
     /**
-     * Returns an existing template of a given type
+     * loadTemplate returns an existing template of a given type
      * @param string $documentType
      * @param string $path
      * @return mixed
@@ -196,14 +200,15 @@ trait HasExtensionCrud
     }
 
     /**
-     * Resolves a template type to its class name
+     * resolveTypeClassName resolves a template type to its class name
      * @param string $documentType
      * @return string
      */
     private function resolveTypeClassName($documentType)
     {
         $types = [
-            EditorExtension::DOCUMENT_TYPE_BLUEPRINT     => Blueprint::class
+            EditorExtension::DOCUMENT_TYPE_BLUEPRINT => Blueprint::class,
+            EditorExtension::DOCUMENT_TYPE_THEME_BLUEPRINT => ThemeBlueprint::class
         ];
 
         if (!array_key_exists($documentType, $types)) {
@@ -226,10 +231,14 @@ trait HasExtensionCrud
         ];
     }
 
+    /**
+     * loadTemplateMetadata
+     */
     private function loadTemplateMetadata($template, $documentData)
     {
         $typeNames = [
-            EditorExtension::DOCUMENT_TYPE_BLUEPRINT => Lang::get('tailor::lang.editor.blueprint')
+            EditorExtension::DOCUMENT_TYPE_BLUEPRINT => Lang::get('tailor::lang.editor.blueprint'),
+            EditorExtension::DOCUMENT_TYPE_THEME_BLUEPRINT => Lang::get('tailor::lang.editor.blueprint')
         ];
 
         $documentType = $documentData['type'];
@@ -249,6 +258,9 @@ trait HasExtensionCrud
         return $result;
     }
 
+    /**
+     * getRequestMetadata
+     */
     private function getRequestMetadata()
     {
         $metadata = Request::input('documentMetadata');
@@ -259,6 +271,9 @@ trait HasExtensionCrud
         return $metadata;
     }
 
+    /**
+     * getRequestExtraData
+     */
     private function getRequestExtraData()
     {
         $extraData = Request::input('extraData');
@@ -269,6 +284,9 @@ trait HasExtensionCrud
         return $extraData;
     }
 
+    /**
+     * getRequestDocumentData
+     */
     private function getRequestDocumentData()
     {
         $documentData = Request::input('documentData');
@@ -279,6 +297,9 @@ trait HasExtensionCrud
         return $documentData;
     }
 
+    /**
+     * createTemplate
+     */
     private function createTemplate($documentType)
     {
         $class = $this->resolveTypeClassName($documentType);
@@ -288,6 +309,9 @@ trait HasExtensionCrud
         return $template;
     }
 
+    /**
+     * loadOrCreateTemplate
+     */
     private function loadOrCreateTemplate($documentType, $templatePath)
     {
         if ($templatePath) {
@@ -297,6 +321,9 @@ trait HasExtensionCrud
         return $this->createTemplate($documentType);
     }
 
+    /**
+     * handleLineEndings
+     */
     private function handleLineEndings($templateData)
     {
         $convertLineEndings = Config::get('system.convert_line_endings', false) === true;
@@ -324,6 +351,9 @@ trait HasExtensionCrud
         return $markup;
     }
 
+    /**
+     * handleMtimeMismatch
+     */
     private function handleMtimeMismatch($template, $metadata)
     {
         $requestMtime = ApiHelpers::assertGetKey($metadata, 'mtime');
@@ -341,6 +371,9 @@ trait HasExtensionCrud
         }
     }
 
+    /**
+     * getUpdateResponse
+     */
     private function getUpdateResponse($template, $originalContent)
     {
         $navigatorPath = dirname($template->fileName);
@@ -364,6 +397,9 @@ trait HasExtensionCrud
         return $result;
     }
 
+    /**
+     * loadRequestedTemplate
+     */
     private function loadRequestedTemplate($metadata)
     {
         $metadata = $metadata ? $metadata : $this->getRequestMetadata();
@@ -377,6 +413,9 @@ trait HasExtensionCrud
         ];
     }
 
+    /**
+     * assertDocumentTypePermissions
+     */
     private function assertDocumentTypePermissions($documentType)
     {
         $user = BackendAuth::getUser();
@@ -389,11 +428,22 @@ trait HasExtensionCrud
         }
     }
 
+    /**
+     * getBlueprintsPath
+     */
     private function getBlueprintsPath()
     {
+        if ($type = post('documentType', post('documentMetadata[documentType]'))) {
+            $className = $this->resolveTypeClassName($type);
+            return (new $className)->getBasePath();
+        }
+
         return (new Blueprint)->getBasePath();
     }
 
+    /**
+     * loadBlueprintForUpdate
+     */
     private function loadBlueprintForUpdate()
     {
         $metadata = $this->getRequestMetadata();

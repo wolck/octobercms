@@ -20,8 +20,7 @@ class RichEditorField extends FallbackField
 
         if (isset($config['span']) && $config['span'] === 'adaptive') {
             $config['showMargins'] = true;
-            $config['externalToolbarAppState'] = 'tailor.app::toolbarExtensionPoint';
-            $config['externalToolbarEventBus'] = 'tailor.app::eventBus';
+            $config['externalToolbarAppState'] = 'toolbarExtensionPoint';
         }
 
         $form->addFormField($this->fieldName, $this->label)->useConfig($config);
@@ -34,6 +33,7 @@ class RichEditorField extends FallbackField
     {
         $list->defineColumn($this->fieldName, $this->label)
             ->displayAs('summary')
+            ->searchable()
             ->shortLabel($this->shortLabel)
             ->useConfig($this->column ?: [])
         ;

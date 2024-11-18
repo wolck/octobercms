@@ -1,4 +1,4 @@
-oc.Module.register('editor.extension.filesystemfunctions', function () {
+oc.Modules.register('editor.extension.filesystemfunctions', function () {
     'use strict';
 
     async function onCreateDirectoryConfirmed(handlerName, name, parent, payload, metadataExtraData, documentController) {
@@ -16,7 +16,8 @@ oc.Module.register('editor.extension.filesystemfunctions', function () {
                 documentController.documentType).then(() => {
                     payload.treeNode.expand();
             });
-        } catch (error) {
+        }
+        catch (error) {
             $.oc.editor.page.showAjaxErrorAlert(error, documentController.trans('editor::lang.common.error'));
             return false;
         }
@@ -34,14 +35,15 @@ oc.Module.register('editor.extension.filesystemfunctions', function () {
             });
 
             documentController.editorStore.refreshExtensionNavigatorNodes(documentController.editorNamespace, documentController.documentType);
-        } catch (error) {
+        }
+        catch (error) {
             $.oc.editor.page.showAjaxErrorAlert(error, documentController.trans('editor::lang.common.error'));
             return false;
         }
     }
 
     async function onFilesSelected(handlerName, input, path, documentController, requestExtraData) {
-        const uploaderUtils = oc.Module.import('backend.vuecomponents.uploader.utils');
+        const uploaderUtils = oc.Modules.import('backend.vuecomponents.uploader.utils');
         requestExtraData = requestExtraData || {};
 
         try {
@@ -127,7 +129,8 @@ oc.Module.register('editor.extension.filesystemfunctions', function () {
                         buttonText: $.oc.editor.getLangStr('backend::lang.form.confirm')
                     }
                 );
-            } catch (error) {
+            }
+            catch (error) {
                 return;
             }
 
@@ -145,7 +148,8 @@ oc.Module.register('editor.extension.filesystemfunctions', function () {
                     this.documentController.editorStore.deleteNavigatorNode(deletedUri);
                     this.documentController.editorStore.tabManager.closeTabByKey(deletedUri);
                 });
-            } catch (error) {
+            }
+            catch (error) {
                 $.oc.editor.page.showAjaxErrorAlert(error, this.documentController.trans('editor::lang.common.error'));
                 this.documentController.editorStore.refreshExtensionNavigatorNodes(this.documentController.editorNamespace);
             }
@@ -180,7 +184,8 @@ oc.Module.register('editor.extension.filesystemfunctions', function () {
                 await this.documentController.editorStore.refreshExtensionNavigatorNodes(this.documentController.editorNamespace, this.documentController.documentType);
                 $.oc.snackbar.show(this.documentController.trans('editor::lang.filesystem.moved'), { replace: movingMessageId });
                 $.oc.editor.application.setNavigatorReadonly(false);
-            } catch (error) {
+            }
+            catch (error) {
                 await this.documentController.editorStore.refreshExtensionNavigatorNodes(this.documentController.editorNamespace, this.documentController.documentType);
                 $.oc.editor.application.setNavigatorReadonly(false);
                 $.oc.snackbar.hide(movingMessageId);
@@ -202,7 +207,7 @@ oc.Module.register('editor.extension.filesystemfunctions', function () {
         }
 
         handleNavigatorExternalDrop(handlerName, cmd, requestExtraData) {
-            const uploaderUtils = oc.Module.import('backend.vuecomponents.uploader.utils');
+            const uploaderUtils = oc.Modules.import('backend.vuecomponents.uploader.utils');
             const dataTransfer = cmd.userData.ev.dataTransfer;
             requestExtraData = requestExtraData || {};
 

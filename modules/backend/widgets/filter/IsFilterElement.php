@@ -19,7 +19,10 @@ trait IsFilterElement
     {
         $scopeObj = new FilterScope([
             'scopeName' => $scopeName,
-            'label' => $label
+            'label' => $label,
+            'arrayName' => $this->arrayName,
+            // @deprecated v4 this should be uncommented
+            // 'idPrefix' => $this->getId()
         ]);
 
         $this->allScopes[$scopeName] = $scopeObj;

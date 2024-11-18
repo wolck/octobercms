@@ -1,6 +1,7 @@
 <?php namespace Backend\Classes;
 
 use Str;
+use Arr;
 use Site;
 use Html;
 use Lang;
@@ -29,6 +30,8 @@ use Exception;
  * @method FormField trigger(array $trigger) Other field names this field can be triggered by, see the Trigger API documentation.
  * @method FormField preset(array $preset) Other field names text is converted in to a URL, slug or file name value in this field.
  * @method FormField permissions(array $permissions) permissions needed to view this field
+ * @method FormField commentTooltip(string $commentTooltip) commentTooltip allows a more verbose comment behind a tooltip, must be used in combination with a comment
+ * @method FormField valueTrans(bool $valueTrans) valueTrans determines if display values (model attributes) should be translated
  *
  * @package october\backend
  * @author Alexey Bobkov, Samuel Georges
@@ -76,7 +79,10 @@ class FormField extends FieldDefinition
     {
         parent::initDefaultValues();
 
-        $this->attributes([]);
+        $this
+            ->valueTrans(true)
+            ->attributes([])
+        ;
     }
 
     /**
@@ -258,8 +264,9 @@ class FormField extends FieldDefinition
     }
 
     /**
-     * getName returns a value suitable for the field name property.
-     * @param  string $arrayName Specify a custom array name
+     * getName returns a value suitable for the field name property. The array name is taken
+     * from the field or can be specified in the arguments.
+     * @param  string $arrayName
      * @return string
      */
     public function getName($arrayName = null)
@@ -301,6 +308,19 @@ class FormField extends FieldDefinition
     }
 
     /**
+     * getDisplayValue checks to see if display values (model attributes) should be translated,
+     * and also escapes the value
+     */
+    public function getDisplayValue($value)
+    {
+        if ($this->valueTrans) {
+            return e(__($value));
+        }
+
+        return e($value);
+    }
+
+    /**
      * getTranslatableMessage
      */
     public function getTranslatableMessage(): string
@@ -310,6 +330,31 @@ class FormField extends FieldDefinition
         }
 
         return '';
+    }
+
+    /**
+     * getCallableMethodFromValue checks for a string "Class::method" or as an
+     * array [Class, method] usually from a YAML definition
+     */
+    public function getCallableMethodFromValue($value): ?array
+    {
+        if (
+            is_string($value) &&
+            count($staticMethod = explode('::', $value)) === 2 &&
+            is_callable($value)
+        ) {
+            return $staticMethod;
+        }
+
+        if (
+            is_array($value) &&
+            count($value) === 2 &&
+            Arr::isList($value)
+        ) {
+            return $value;
+        }
+
+        return null;
     }
 
     /**
@@ -349,7 +394,7 @@ class FormField extends FieldDefinition
      *
      *     [$model, $attribute] = $this->resolveAttribute('person[phone]');
      *
-     * @param  string $attribute.
+     * @param  string $attribute
      * @return array
      */
     public function resolveModelAttribute($model, $attribute = null)
@@ -402,7 +447,8 @@ class FormField extends FieldDefinition
     }
 
     /**
-     * Internal method to extract the value of a field name from a data set.
+     * getFieldNameFromData is an internal method to extract the value of a field name
+     * from a data set.
      * @param string $fieldName
      * @param mixed $data
      * @param mixed $default
@@ -421,7 +467,7 @@ class FormField extends FieldDefinition
         foreach ($keyParts as $key) {
             if ($result instanceof Model && $result->hasRelation($key)) {
                 if ($key === $lastField) {
-                    $result = $result->getRelationValue($key) ?: $default;
+                    $result = $result->getRelationSimpleValue($key) ?: $default;
                 }
                 else {
                     $result = $result->{$key};
@@ -449,8 +495,12 @@ class FormField extends FieldDefinition
      */
     public function getOptionsFromModel($model, $fieldOptions, $data)
     {
+        // Preset
+        if (is_string($fieldOptions) && str_starts_with($fieldOptions, 'preset:')) {
+            $fieldOptions = \System\Classes\PresetManager::instance()->getPreset($fieldOptions);
+        }
         // Method name
-        if (is_string($fieldOptions)) {
+        elseif (is_string($fieldOptions)) {
             $fieldOptions = $this->getOptionsFromModelAsString($model, $fieldOptions, $data);
         }
         // Default collection
@@ -472,17 +522,13 @@ class FormField extends FieldDefinition
     protected function getOptionsFromModelAsString($model, string $methodName, $data)
     {
         // Calling via ClassName::method
-        if (
-            is_string($methodName) &&
-            count($staticMethod = explode('::', $methodName)) === 2 &&
-            is_callable($staticMethod)
-        ) {
-            $fieldOptions = $staticMethod($model, $this);
+        if ($callableMethod = $this->getCallableMethodFromValue($methodName)) {
+            $fieldOptions = $callableMethod($model, $this);
 
             if (!is_array($fieldOptions)) {
                 throw new SystemException(Lang::get('backend::lang.field.options_static_method_invalid_value', [
-                    'class' => $staticMethod[0],
-                    'method' => $staticMethod[1]
+                    'class' => $callableMethod[0],
+                    'method' => $callableMethod[1]
                 ]));
             }
         }

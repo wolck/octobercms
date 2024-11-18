@@ -93,7 +93,8 @@ class EditorExtension extends ExtensionBase
     }
 
     /**
-     * Returns a list of language strings required by the client-side extension controller.
+     * getClientSideLangStrings returns a list of language strings required by the
+     * client-side extension controller.
      * @return array
      */
     public function getClientSideLangStrings()
@@ -191,28 +192,38 @@ class EditorExtension extends ExtensionBase
 
         $this->addSectionMenuItems($cmsSection);
 
-        if (EditorExtension::hasAccessToDocType($user, self::DOCUMENT_TYPE_PAGE)
-            && (!$documentType || $documentType === self::DOCUMENT_TYPE_PAGE)) {
+        if (
+            EditorExtension::hasAccessToDocType($user, self::DOCUMENT_TYPE_PAGE) &&
+            (!$documentType || $documentType === self::DOCUMENT_TYPE_PAGE)
+        ) {
             $this->addPagesNavigatorNodes($this->getTheme(), $cmsSection);
         }
 
-        if (EditorExtension::hasAccessToDocType($user, self::DOCUMENT_TYPE_PARTIAL)
-            && (!$documentType || $documentType === self::DOCUMENT_TYPE_PARTIAL)) {
+        if (
+            EditorExtension::hasAccessToDocType($user, self::DOCUMENT_TYPE_PARTIAL) &&
+            (!$documentType || $documentType === self::DOCUMENT_TYPE_PARTIAL)
+        ) {
             $this->addPartialsNavigatorNodes($this->getTheme(), $cmsSection);
         }
 
-        if (EditorExtension::hasAccessToDocType($user, self::DOCUMENT_TYPE_LAYOUT)
-            && (!$documentType || $documentType === self::DOCUMENT_TYPE_LAYOUT)) {
+        if (
+            EditorExtension::hasAccessToDocType($user, self::DOCUMENT_TYPE_LAYOUT) &&
+            (!$documentType || $documentType === self::DOCUMENT_TYPE_LAYOUT)
+        ) {
             $this->addLayoutsNavigatorNodes($this->getTheme(), $cmsSection);
         }
 
-        if (EditorExtension::hasAccessToDocType($user, self::DOCUMENT_TYPE_CONTENT)
-            && (!$documentType || $documentType === self::DOCUMENT_TYPE_CONTENT)) {
+        if (
+            EditorExtension::hasAccessToDocType($user, self::DOCUMENT_TYPE_CONTENT) &&
+            (!$documentType || $documentType === self::DOCUMENT_TYPE_CONTENT)
+        ) {
             $this->addContentNavigatorNodes($this->getTheme(), $cmsSection);
         }
 
-        if (EditorExtension::hasAccessToDocType($user, self::DOCUMENT_TYPE_ASSET)
-            && (!$documentType || $documentType === self::DOCUMENT_TYPE_ASSET)) {
+        if (
+            EditorExtension::hasAccessToDocType($user, self::DOCUMENT_TYPE_ASSET) &&
+            (!$documentType || $documentType === self::DOCUMENT_TYPE_ASSET)
+        ) {
             $this->addAssetsNavigatorNodes($this->getTheme(), $cmsSection);
         }
     }
@@ -248,6 +259,10 @@ class EditorExtension extends ExtensionBase
         ];
     }
 
+    /**
+     * getNewDocumentsData
+     * @return array
+     */
     public function getNewDocumentsData()
     {
         return [
@@ -259,15 +274,23 @@ class EditorExtension extends ExtensionBase
         ];
     }
 
+    /**
+     * getSettingsForms
+     * @return array
+     */
     public function getSettingsForms()
     {
         return [
-            EditorExtension::DOCUMENT_TYPE_PAGE => $this->loadAndExtendCmsSettingsFile(__DIR__, 'page'),
-            EditorExtension::DOCUMENT_TYPE_PARTIAL => $this->loadAndExtendCmsSettingsFile(__DIR__, 'partial'),
-            EditorExtension::DOCUMENT_TYPE_LAYOUT => $this->loadAndExtendCmsSettingsFile(__DIR__, 'layout')
+            EditorExtension::DOCUMENT_TYPE_PAGE => $this->loadAndExtendCmsSettingsFields(\Cms\Classes\Page\Fields::class, 'page'),
+            EditorExtension::DOCUMENT_TYPE_PARTIAL => $this->loadAndExtendCmsSettingsFields(\Cms\Classes\Partial\Fields::class, 'partial'),
+            EditorExtension::DOCUMENT_TYPE_LAYOUT => $this->loadAndExtendCmsSettingsFields(\Cms\Classes\Layout\Fields::class, 'layout')
         ];
     }
 
+    /**
+     * hasAccessToDocType
+     * @return array
+     */
     public static function hasAccessToDocType($user, $documentType)
     {
         if (!array_key_exists($documentType, EditorExtension::DOCUMENT_TYPE_PERMISSIONS)) {
@@ -319,10 +342,10 @@ class EditorExtension extends ExtensionBase
         $user = BackendAuth::getUser();
 
         $section->addMenuItem(ItemDefinition::TYPE_TEXT, Lang::get('cms::lang.editor.refresh'), 'cms:refresh-navigator')
-            ->setIcon('octo-icon-refresh');
+            ->setIcon('icon-refresh');
 
         $createMenuItem = new ItemDefinition(ItemDefinition::TYPE_TEXT, Lang::get('cms::lang.editor.create'), 'cms:create');
-        $createMenuItem->setIcon('octo-icon-create');
+        $createMenuItem->setIcon('icon-create');
         $menuConfiguration = [
             'editor.cms_pages' => [
                 'label' => 'cms::lang.editor.page',

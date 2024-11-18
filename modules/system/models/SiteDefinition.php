@@ -3,20 +3,45 @@
 use Url;
 use Site;
 use Model;
-use Config;
 use Cms\Classes\Theme;
-use System\Helpers\LocaleHelper;
-use System\Helpers\DateTimeHelper;
+use Backend\Models\User;
+use Backend\Models\UserRole;
+use System\Helpers\Preset as PresetHelper;
+use System\Classes\SiteCollection;
 use ValidationException;
 
 /**
  * SiteDefinition
+ *
+ * @property int $id
+ * @property string $name
+ * @property string $code
+ * @property int $sort_order
+ * @property bool $is_custom_url
+ * @property string $app_url
+ * @property string $theme
+ * @property string $locale
+ * @property string $fallback_locale
+ * @property string $timezone
+ * @property bool $is_host_restricted
+ * @property array $allow_hosts
+ * @property bool $is_prefixed
+ * @property string $route_prefix
+ * @property bool $is_styled
+ * @property string $color_foreground
+ * @property string $color_background
+ * @property bool $is_role_restricted
+ * @property array $allow_roles
+ * @property bool $is_primary
+ * @property bool $is_enabled
+ * @property bool $is_enabled_edit
  *
  * @package october\system
  * @author Alexey Bobkov, Samuel Georges
  */
 class SiteDefinition extends Model
 {
+    use \System\Models\SiteDefinition\HasModelAttributes;
     use \October\Rain\Database\Traits\Validation;
     use \October\Rain\Database\Traits\Sortable;
 
@@ -28,7 +53,7 @@ class SiteDefinition extends Model
     /**
      * @var array jsonable are json encoded attributes
      */
-    protected $jsonable = ['allow_hosts'];
+    protected $jsonable = ['allow_hosts', 'allow_roles'];
 
     /**
      * @var array Validation rules
@@ -37,6 +62,19 @@ class SiteDefinition extends Model
         'code' => 'required',
         'name' => 'required',
     ];
+
+    /**
+     * @var array belongsTo
+     */
+    public $belongsTo = [
+        'group' => SiteGroup::class
+    ];
+
+    /**
+     * @var bool isFallbackMatch is used when a site is matched by its hostname
+     * but not by its prefix and becomes the basis for a redirect
+     */
+    public $isFallbackMatch = false;
 
     /**
      * @var string urlOverride
@@ -74,7 +112,9 @@ class SiteDefinition extends Model
             'code' => 'english',
             'is_primary' => true,
             'is_enabled' => true,
-            'is_enabled_edit' => true
+            'is_enabled_edit' => true,
+            'group_id' => null,
+            'group' => null,
         ];
         $site->syncOriginal();
         return $site;
@@ -92,6 +132,29 @@ class SiteDefinition extends Model
         if ($this->is_prefixed && (substr($this->route_prefix, 0, 1) !== '/' || $this->route_prefix === '/')) {
             throw new ValidationException(['route_prefix' => __("Route prefix must start with a forward slash (/)")]);
         }
+
+        if ($this->is_host_restricted && !$this->isAllowHostsValid()) {
+            throw new ValidationException(['allow_hosts' => __("Please specify a valid hostname")]);
+        }
+
+        $this->fallback_locale = $this->getFallbackLocale($this->locale);
+    }
+
+    /**
+     * getFallbackLocale attempts to extract the fallback language from the locale.
+     * @return string
+     */
+    protected function getFallbackLocale($locale)
+    {
+        if ($position = strpos($locale, '-')) {
+            $target = substr($locale, 0, $position);
+            $available = $this->getLocaleOptions();
+            if (isset($available[$target])) {
+                return $target;
+            }
+        }
+
+        return '';
     }
 
     /**
@@ -100,34 +163,6 @@ class SiteDefinition extends Model
     public function afterSave()
     {
         Site::resetCache();
-    }
-
-    /**
-     * getActiveColorAttribute
-     */
-    public function getActiveColorAttribute()
-    {
-        if ($this->is_styled) {
-            return [$this->color_background, $this->color_foreground];
-        }
-
-        return null;
-    }
-
-    /**
-     * getStatusCodeAttribute
-     */
-    public function getStatusCodeAttribute()
-    {
-        if ($this->is_enabled) {
-            return 'enabled';
-        }
-
-        if ($this->is_enabled_edit) {
-            return 'editable';
-        }
-
-        return 'disabled';
     }
 
     /**
@@ -143,58 +178,11 @@ class SiteDefinition extends Model
     }
 
     /**
-     * getBaseUrlAttribute
-     */
-    public function getBaseUrlAttribute()
-    {
-        $appUrl = $this->is_custom_url ? $this->app_url : Url::to('/');
-        $prefix = $this->is_prefixed ? $this->route_prefix : '';
-
-        return rtrim($appUrl . $prefix, '/');
-    }
-
-    /**
-     * getHardLocaleAttribute will always return a locale code no matter what
-     */
-    public function getHardLocaleAttribute()
-    {
-        if ($this->locale) {
-            return $this->locale;
-        }
-
-        return Config::get('app.original_locale', Config::get('app.locale', 'en'));
-    }
-
-    /**
-     * getUrlAttribute
-     */
-    public function getUrlAttribute()
-    {
-        if ($this->urlOverride !== null) {
-            return $this->urlOverride;
-        }
-
-        return $this->base_url;
-    }
-
-    /**
      * setUrlOverride
      */
     public function setUrlOverride(string $url)
     {
         $this->urlOverride = $url;
-    }
-
-    /**
-     * getFlagIconAttribute
-     */
-    public function getFlagIconAttribute()
-    {
-        if (!$this->locale || $this->locale === 'custom') {
-            return '';
-        }
-
-        return LocaleHelper::listLocalesWithFlags()[$this->locale][1] ?? '';
     }
 
     /**
@@ -214,15 +202,37 @@ class SiteDefinition extends Model
     }
 
     /**
-     * matchesBaseHostname
+     * isAllowHostsValid returns true if the allowable host names are valid
      */
-    public function matchesBaseUrl(string $hostname): bool
+    protected function isAllowHostsValid(): bool
+    {
+        foreach ($this->getAllowHostsAsArray() as $domain) {
+            if (!preg_match(
+                '/^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$/',
+                str_replace('*', 'x', $domain)
+            )) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * matchesBaseUrl matches a URL with the custom app URL, if specified
+     */
+    public function matchesBaseUrl(string $url): bool
     {
         if (!$this->is_custom_url) {
             return true;
         }
 
-        return $hostname === parse_url($this->app_url, PHP_URL_HOST);
+        // @deprecated
+        if (!str_contains($url, '://')) {
+            return $url === parse_url($this->app_url, PHP_URL_HOST);
+        }
+
+        return str_starts_with($url, rtrim($this->app_url, '/'));
     }
 
     /**
@@ -230,7 +240,7 @@ class SiteDefinition extends Model
      */
     public function matchesHostname(string $hostname): bool
     {
-        if (!$this->is_restricted) {
+        if (!$this->is_host_restricted) {
             return true;
         }
 
@@ -294,7 +304,7 @@ class SiteDefinition extends Model
         }
 
         // Starts with segment (prefix/)
-        if (starts_with($uri, $prefix.'/')) {
+        if (str_starts_with($uri, $prefix.'/')) {
             return true;
         }
 
@@ -339,7 +349,7 @@ class SiteDefinition extends Model
     public function getThemeOptions(): array
     {
         $result = [
-            '' => '— '.__('Use Default').' —',
+            '' => '- '.__('Use Default').' -',
         ];
 
         foreach (Theme::all() as $theme) {
@@ -363,9 +373,9 @@ class SiteDefinition extends Model
     public function getLocaleOptions()
     {
         return [
-            '' => '— '.__('Use Default').' —',
-        ] + LocaleHelper::listLocalesWithFlags() + [
-            'custom' => '— '.__('Use Custom').' —'
+            '' => '- '.__('Use Default').' -',
+        ] + PresetHelper::flags() + [
+            'custom' => '- '.__('Use Custom').' -'
         ];
     }
 
@@ -378,7 +388,7 @@ class SiteDefinition extends Model
             return false;
         }
 
-        return !isset(LocaleHelper::listLocalesWithFlags()[$locale]);
+        return !isset(PresetHelper::flags()[$locale]);
     }
 
     /**
@@ -388,7 +398,52 @@ class SiteDefinition extends Model
     public function getTimezoneOptions()
     {
         return [
-            '' => '— '.__('Use Default').' —',
-        ] + DateTimeHelper::listTimezones();
+            '' => '- '.__('Use Default').' -',
+        ] + PresetHelper::timezones();
+    }
+
+    /**
+     * getAllowRolesOptions returns available role options
+     */
+    public function getAllowRolesOptions()
+    {
+        $result = [];
+
+        foreach (UserRole::all() as $role) {
+            $result[$role->id] = $role->name;
+        }
+
+        return $result;
+    }
+
+    /**
+     * matchesRole
+     */
+    public function matchesRole(?User $user): bool
+    {
+        if (!$this->is_role_restricted) {
+            return true;
+        }
+
+        if (!$user || !$user->role_id) {
+            return false;
+        }
+
+        foreach ((array) $this->allow_roles as $roleId) {
+            if ((int) $user->role_id === (int) $roleId) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * newCollection instance.
+     * @return \System\Classes\SiteCollection
+     */
+    public function newCollection(array $models = [])
+    {
+        return new SiteCollection($models);
     }
 }

@@ -36,15 +36,11 @@
     @import "../../../../models/editorsetting/default_styles.less";
 }
 
-// Modifications
-@import "_froala.less";
-
-//
-// Make the focus ring and textarea fill the whole rich editor container
-//
-
-.fr-element {
-    height: 100%;
+.fr-wrapper {
+    ::selection {
+        background: @input-selection-bg;
+        color: @input-selection-color;
+    }
 }
 
 //
@@ -135,7 +131,7 @@
         }
 
         .fr-wrapper {
-            width: 100% !important;
+            width: 100%;
             left: 0;
             top: 0;
             bottom: 0;
@@ -144,11 +140,6 @@
             .fr-view {
                 min-height: 0;
             }
-        }
-
-        .fr-view,
-        textarea {
-            height: 100%;
         }
 
         .fr-placeholder {
@@ -168,36 +159,28 @@
 //
 
 .control-richeditor {
-    .richeditor-snippet() {
+    figure[data-video],
+    figure[data-audio] {
         display: inline-block;
         width: 100%;
         margin: 0 0 15px 0;
-        padding: 10px 10px 10px 36px;
-        border: 2px dotted #bdc3c7;
-        background: white;
+        padding: 10px 10px 10px 13px;
+        border: 1px dashed #bdc3c7;
+        background: @input-bg;
         position: relative;
-        cursor: pointer;
-        color: #6c7071;
-        font: 15px @font-family-base;
-        font-weight: 500;
+        color: @heading-color;
+        font-size: 15px;
+        font-weight: 600;
         line-height: 150%;
-        .border-radius(3px);
+        font-weight: normal;
+        cursor: pointer;
 
         &:focus,
         &.inspector-open {
-            border-color: #2581b8;
+            border-color: @brand-primary;
             border-style: solid;
             outline: none;
         }
-    }
-
-    figure[data-ui-block] {
-        .richeditor-snippet();
-    }
-
-    figure[data-video],
-    figure[data-audio] {
-        padding-left: 13px;
 
         &:after {
             content: attr(data-label);
@@ -211,13 +194,13 @@
 
     figure[data-video] {
         &:before {
-            .icon(@video-camera);
+            .icon(@icon-video-camera);
         }
     }
 
     figure[data-audio] {
         &:before {
-            .icon(@volume-up);
+            .icon(@icon-volume-up);
         }
     }
 }

@@ -1,8 +1,8 @@
-<div class="loading-indicator-container size-input-text">
+<div class="control-search loading-indicator-container size-input-text">
     <div
         id="<?= $this->getId() ?>"
         class="search-input-container storm-icon-pseudo"
-        data-control="searchwidget"
+        data-control="searchinput"
     >
         <input
             placeholder="<?= $placeholder ?>"
@@ -13,14 +13,14 @@
             <?= !$searchOnEnter ? 'data-track-input' : '' ?>
             data-load-indicator
             data-load-indicator-opaque
-            class="form-control <?= $cssClasses ?>"
+            class="form-control is-searchable <?= $cssClasses ?>"
             autocomplete="off"
             data-search-input />
         <button
             class="clear-input-text"
             type="button"
             value=""
-            style="display: none"
+            style="display:none"
             data-search-clear
         >
             <i class="storm-icon"></i>

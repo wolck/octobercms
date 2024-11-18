@@ -11,15 +11,22 @@ use Cms\Classes\ComponentModuleBase;
 class GlobalComponent extends ComponentModuleBase
 {
     /**
+     * @var array primaryRecordCache
+     */
+    protected $primaryRecordCache = false;
+
+    /**
      * componentDetails
      */
     public function componentDetails()
     {
         return [
-            'name' => 'Global',
-            'description' => 'Makes globals available to the page.'
+            'name' => 'Global_',
+            'description' => 'Makes globals available to the page.',
+            'icon' => 'icon-cogs'
         ];
     }
+
     /**
      * defineProperties
      */
@@ -61,6 +68,18 @@ class GlobalComponent extends ComponentModuleBase
      * getPrimaryRecord
      */
     public function getPrimaryRecord()
+    {
+        if ($this->primaryRecordCache !== false) {
+            return $this->primaryRecordCache;
+        }
+
+        return $this->primaryRecordCache = $this->getPrimaryRecordResult();
+    }
+
+    /**
+     * getPrimaryRecordResult
+     */
+    public function getPrimaryRecordResult()
     {
         $query = $this->getPrimaryRecordQuery();
 

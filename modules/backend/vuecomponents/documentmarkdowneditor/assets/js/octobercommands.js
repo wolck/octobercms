@@ -1,4 +1,4 @@
-oc.Module.register('backend.vuecomponents.documentmarkdowneditor.octobercommands', function() {
+oc.Modules.register('backend.vuecomponents.documentmarkdowneditor.octobercommands', function() {
     'use strict';
 
     function getUrlPopupConfig(component) {
@@ -25,6 +25,9 @@ oc.Module.register('backend.vuecomponents.documentmarkdowneditor.octobercommands
     class OctoberCommands {
         invoke(command, editor, component) {
             switch (command) {
+                case 'oc-snippet':
+                    return this.insertSnippet(editor);
+
                 case 'oc-link':
                     return this.browseLink(editor);
 
@@ -49,8 +52,12 @@ oc.Module.register('backend.vuecomponents.documentmarkdowneditor.octobercommands
         }
 
         uploadMedia(callback, accept) {
-            const uploaderUtils = oc.Module.import('backend.vuecomponents.uploader.utils');
-            uploaderUtils.selectAndUploadMediaManagerFiles(callback, true, accept);
+            const uploaderUtils = oc.Modules.import('backend.vuecomponents.uploader.utils');
+            uploaderUtils.selectAndUploadMediaManagerFiles(
+                callback,
+                true,
+                accept
+            );
         }
 
         titleFromUrl(url) {
@@ -94,7 +101,7 @@ oc.Module.register('backend.vuecomponents.documentmarkdowneditor.octobercommands
                 cropAndInsertButton: true,
                 onInsert: function(items) {
                     if (!items.length) {
-                        $.oc.alert($.oc.lang.get('mediamanager.invalid_image_empty_insert'));
+                        oc.alert($.oc.lang.get('mediamanager.invalid_image_empty_insert'));
                         return;
                     }
 
@@ -102,7 +109,7 @@ oc.Module.register('backend.vuecomponents.documentmarkdowneditor.octobercommands
 
                     for (let i = 0, len = items.length; i < len; i++) {
                         if (items[i].documentType !== 'image') {
-                            $.oc.alert(
+                            oc.alert(
                                 $.oc.lang.get(
                                     'mediamanager.invalid_image_invalid_insert',
                                     'The file "' + items[i].title + '" is not an image.'
@@ -146,14 +153,23 @@ oc.Module.register('backend.vuecomponents.documentmarkdowneditor.octobercommands
                 .then($.noop, $.noop);
         }
 
-        browseLink(editor) {
-            const that = this;
+        insertSnippet(editor) {
+            oc.snippetLookup.popup({
+                alias: 'ocsnippetlookup',
+                onInsert: function(snippet) {
+                    var str = oc.snippetLookup.generateSnippetHtml(snippet);
+                    editor.codemirror.replaceSelection(str);
+                    this.hide();
+                }
+            });
+        }
 
+        browseLink(editor) {
             oc.pageLookup.popup({
                 alias: 'ocpagelookup',
                 onInsert: function(item) {
                     if (!item) {
-                        $.oc.alert($.oc.lang.get('mediamanager.invalid_file_empty_insert'));
+                        oc.alert($.oc.lang.get('mediamanager.invalid_file_empty_insert'));
                         return;
                     }
 
@@ -173,7 +189,7 @@ oc.Module.register('backend.vuecomponents.documentmarkdowneditor.octobercommands
                 cropAndInsertButton: false,
                 onInsert: function(items) {
                     if (!items.length) {
-                        $.oc.alert($.oc.lang.get('mediamanager.invalid_file_empty_insert'));
+                        oc.alert($.oc.lang.get('mediamanager.invalid_file_empty_insert'));
                         return;
                     }
 

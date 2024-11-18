@@ -1,4 +1,4 @@
-oc.Module.register('editor.store.tabmanager', function() {
+oc.Modules.register('editor.store.tabmanager', function() {
     'use strict';
 
     class TabManager {
@@ -48,7 +48,7 @@ oc.Module.register('editor.store.tabmanager', function() {
             if (index !== null) {
                 this.store.state.editorTabs.splice(index, 1);
                 Vue.nextTick(() => {
-                    $.oc.octoberTooltips.clear();
+                    oc.octoberTooltips.clear();
                 }, 1);
             }
         }

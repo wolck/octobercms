@@ -145,11 +145,22 @@ class Index extends Controller
             throw new SystemException('Invalid document type');
         }
 
-        $extension = ExtensionManager::instance()->getExtensionByNamespace($namespace);
-        $namespace = $extension->getNamespaceNormalized();
+        if ($namespace !== '*') {
+            $extension = ExtensionManager::instance()->getExtensionByNamespace($namespace);
+            $namespace = $extension->getNamespaceNormalized();
 
-        return [
-            'sections' => $this->listExtensionNavigatorSections($extension, $namespace, $documentType)
-        ];
+            return [
+                'sections' => $this->listExtensionNavigatorSections($extension, $namespace, $documentType)
+            ];
+        }
+
+        $result = [];
+        $extensions = ExtensionManager::instance()->listExtensions();
+        foreach ($extensions as $extension) {
+            $namespace = $extension->getNamespaceNormalized();
+            $result[$namespace] = $this->listExtensionNavigatorSections($extension, $namespace, $documentType);
+        }
+
+        return ['multiSections' => $result];
     }
 }

@@ -12,15 +12,17 @@ use SystemException;
  */
 class EditorExtension extends ExtensionBase
 {
-    const DOCUMENT_TYPE_BLUEPRINT = 'tailor-blueprint';
-
     use \Tailor\Classes\EditorExtension\HasExtensionState;
     use \Tailor\Classes\EditorExtension\HasExtensionCrud;
+
+    const DOCUMENT_TYPE_BLUEPRINT = 'tailor-blueprint';
+    const DOCUMENT_TYPE_THEME_BLUEPRINT = 'tailor-theme-blueprint';
 
     const ICON_COLOR_BLUEPRINT = '#1563B5';
 
     const DOCUMENT_TYPE_PERMISSIONS = [
-        EditorExtension::DOCUMENT_TYPE_BLUEPRINT => ['editor.tailor_blueprints']
+        EditorExtension::DOCUMENT_TYPE_BLUEPRINT => ['editor.tailor_blueprints'],
+        EditorExtension::DOCUMENT_TYPE_THEME_BLUEPRINT => ['editor.tailor_blueprints']
     ];
 
     /**
@@ -48,12 +50,14 @@ class EditorExtension extends ExtensionBase
         return [
             '/modules/tailor/assets/js/tailor.editor.extension.js',
             '/modules/tailor/assets/js/tailor.editor.extension.documentcomponent.base.js',
-            '/modules/tailor/assets/js/tailor.editor.extension.documentcontroller.blueprint.js'
+            '/modules/tailor/assets/js/tailor.editor.extension.documentcontroller.blueprint.js',
+            '/modules/tailor/assets/js/tailor.editor.extension.documentcontroller.theme-blueprint.js'
         ];
     }
 
     /**
-     * Returns a list of language strings required by the client-side extension controller.
+     * getClientSideLangStrings returns a list of language strings required by the
+     * client-side extension controller.
      * @return array
      */
     public function getClientSideLangStrings()
@@ -100,21 +104,30 @@ class EditorExtension extends ExtensionBase
     }
 
     /**
-     * Initializes extension's sidebar Navigator sections.
+     * listNavigatorSections initializes extension's sidebar Navigator sections.
      */
     public function listNavigatorSections(SectionList $sectionList, $documentType = null)
     {
         $user = BackendAuth::getUser();
 
-        $tailorSection = $sectionList->addSection('Tailor', 'tailor');
+        $tailorSection = $sectionList->addSection(__("Tailor") . ' - ' . __("Blueprints"), 'tailor');
         $tailorSection->setHasApiMenuItems(true);
         $tailorSection->setUserDataElement('uniqueKey', 'tailor:root');
 
         $this->addSectionMenuItems($tailorSection);
 
-        if (EditorExtension::hasAccessToDocType($user, self::DOCUMENT_TYPE_BLUEPRINT)
-            && (!$documentType || $documentType === self::DOCUMENT_TYPE_BLUEPRINT)) {
+        if (
+            EditorExtension::hasAccessToDocType($user, self::DOCUMENT_TYPE_BLUEPRINT) &&
+            (!$documentType || $documentType === self::DOCUMENT_TYPE_BLUEPRINT)
+        ) {
             $this->addBlueprintsNavigatorNodes($tailorSection);
+        }
+
+        if (
+            EditorExtension::hasAccessToDocType($user, self::DOCUMENT_TYPE_THEME_BLUEPRINT) &&
+            !$documentType || $documentType === self::DOCUMENT_TYPE_THEME_BLUEPRINT
+        ) {
+            $this->addThemeBlueprintsNavigatorNodes($tailorSection);
         }
     }
 
@@ -124,7 +137,8 @@ class EditorExtension extends ExtensionBase
     public function getNewDocumentsData()
     {
         return [
-            EditorExtension::DOCUMENT_TYPE_BLUEPRINT => $this->getTailorBlueprintNewDocumentData()
+            EditorExtension::DOCUMENT_TYPE_BLUEPRINT => $this->getTailorBlueprintNewDocumentData(),
+            EditorExtension::DOCUMENT_TYPE_THEME_BLUEPRINT => $this->getTailorThemeBlueprintNewDocumentData()
         ];
     }
 
@@ -178,19 +192,26 @@ class EditorExtension extends ExtensionBase
         $user = BackendAuth::getUser();
 
         $section->addMenuItem(ItemDefinition::TYPE_TEXT, Lang::get('tailor::lang.editor.refresh'), 'tailor:refresh-navigator')
-            ->setIcon('octo-icon-refresh');
+            ->setIcon('icon-refresh');
 
         $createMenuItem = new ItemDefinition(ItemDefinition::TYPE_TEXT, Lang::get('tailor::lang.editor.create'), 'tailor:create');
-        $createMenuItem->setIcon('octo-icon-create');
+        $createMenuItem->setIcon('icon-create');
 
         $menuConfiguration = [
-            'editor.tailor_blueprints' => [
-                'label' => 'tailor::lang.editor.blueprint',
+            [
+                'label' => __("App Blueprint"),
+                'permission' => 'editor.tailor_blueprints',
                 'document' => EditorExtension::DOCUMENT_TYPE_BLUEPRINT
+            ],
+            [
+                'label' => __("Theme Blueprint"),
+                'permission' => 'editor.tailor_blueprints',
+                'document' => EditorExtension::DOCUMENT_TYPE_THEME_BLUEPRINT
             ]
         ];
 
-        foreach ($menuConfiguration as $permission => $itemConfig) {
+        foreach ($menuConfiguration as $itemConfig) {
+            $permission = $itemConfig['permission'];
             if (!$user->hasAnyAccess([$permission])) {
                 continue;
             }

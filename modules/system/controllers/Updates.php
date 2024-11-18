@@ -77,10 +77,16 @@ class Updates extends Controller
      */
     public function index()
     {
-        $this->addJs('/modules/system/assets/js/updates/updates.js');
+        $this->addJs('/modules/system/assets/js/pages/updates.js');
+
+        try {
+            $this->vars['projectDetails'] = UpdateManager::instance()->getProjectDetails();
+        }
+        catch (Exception $ex) {
+            $this->vars['projectDetails'] = null;
+        }
 
         $this->vars['currentVersion'] = UpdateManager::instance()->getCurrentVersion();
-        $this->vars['projectDetails'] = UpdateManager::instance()->getProjectDetails();
         $this->vars['pluginsActiveCount'] = PluginVersion::applyEnabled()->count();
         $this->vars['pluginsCount'] = PluginVersion::count();
         return $this->asExtension('ListController')->index();
@@ -101,7 +107,7 @@ class Updates extends Controller
      */
     public function manage()
     {
-        $this->pageTitle = 'Manage Plugins';
+        $this->pageTitle = "Manage Plugins";
         PluginManager::instance()->clearDisabledCache();
 
         $this->vars['canUpdate'] = BackendAuth::userHasAccess('general.backend.perform_updates');

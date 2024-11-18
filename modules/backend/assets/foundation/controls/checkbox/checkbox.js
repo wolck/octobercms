@@ -69,18 +69,14 @@
     // Checkbox Ranges
     //
 
-    if ($.oc === undefined) {
-        $.oc = {};
-    }
-
-    $.oc.checkboxRangeDetail = {
+    oc.checkboxRangeDetail = {
         lastCheckbox: null,
         isLastChecked: true
     };
 
-    $.oc.checkboxRangeRegisterClick = function(ev, containerSelector, checkboxSelector) {
+    oc.checkboxRangeRegisterClick = function(ev, containerSelector, checkboxSelector) {
         var el = ev.target,
-            detail = $.oc.checkboxRangeDetail;
+            detail = oc.checkboxRangeDetail;
 
         var selectCheckboxesIn = function(rows, isChecked) {
             rows.forEach(function(row) {

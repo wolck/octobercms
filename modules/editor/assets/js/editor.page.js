@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    const EditorStore = oc.Module.import('editor.store');
+    const EditorStore = oc.Modules.import('editor.store');
 
     class EditorPage {
         constructor(height, width) {
@@ -53,7 +53,7 @@ $(document).ready(function() {
         }
 
         showAjaxErrorAlert(error, title) {
-            let responseText = error.responseText;
+            let responseText = error.responseText || error.message;
 
             if (!responseText && error.status === 0) {
                 responseText = 'Error connecting to the server.';
