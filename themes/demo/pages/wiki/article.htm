@@ -1,22 +1,21 @@
 ##
-url = "/wiki/:slug*"
+url = "/wiki/:fullslug*/:id"
 layout = "wiki"
 title = "Wiki Article"
 meta_title = "{{ wiki.title }}"
 
 [section wiki]
-handle = "Wiki\Article"
-entrySlug = "{{ :slug }}"
+handle = "Page\Article"
+identifier = "id"
 
 [resources]
 vars[activeNavLink] = 'wiki'
-vars[howItsMadeCmsTemplate] = 'cms:cms-page:wiki/article.htm'
-vars[howItsMadeTailorBlueprint] = 'tailor:tailor-blueprint:wiki/article.yaml'
-vars[howItsMadeTailorContent] = 'entries/wiki_article/{{ wiki.id }}'
 ==
 {% set article = wiki %}
 {% if article is empty %}
     {% do abort(404) %}
+{% elseif article.fullslug and article.fullslug != this.param.fullslug %}
+    {% do redirect(''|page({ fullslug: article.fullslug }), 301) %}
 {% endif %}
 
 <div class="container">
@@ -33,14 +32,14 @@ vars[howItsMadeTailorContent] = 'entries/wiki_article/{{ wiki.id }}'
             {% if article.banner %}
                 <div class="text-banner" style="background-image:url('{{ article.banner.path }}')"></div>
             {% else %}
-                <div class="text-banner" style="background-image:url('{{ partial('helpers/random-stock-image') }}')"></div>
+                <div class="text-banner" style="background-image:url('{{ partial('site/helpers/random-stock-image') }}')"></div>
             {% endif %}
         </div>
 
-        {{ article.content|raw }}
+        {{ article.content|content }}
 
         <div class="wiki-article-gallery mb-3">
-            {% partial 'controls/image-carousel' gallery=article.gallery %}
+            {% partial 'controls/gallery-slider' gallery=article.gallery %}
         </div>
     </article>
 

@@ -28,7 +28,19 @@ return [
     |
     */
 
-    'auto_rename' => null,
+    'auto_rename' => env('MEDIA_AUTO_RENAME', null),
+
+   /*
+    |--------------------------------------------------------------------------
+    | Clean Vector Files
+    |--------------------------------------------------------------------------
+    |
+    | When a vector file (SVG) file is uploaded, automatically process its
+    | contents to remove scripts and other potentially dangerous content.
+    |
+    */
+
+    'clean_vectors' => true,
 
     /*
     |--------------------------------------------------------------------------
@@ -45,6 +57,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Allowed Extensions
+    |--------------------------------------------------------------------------
+    |
+    | Only allow the following extensions to be uploaded and stored.
+    |
+    */
+
+    'default_extensions' => ['jpg', 'jpeg', 'bmp', 'png', 'webp', 'gif', 'svg', 'js', 'map', 'ico', 'css', 'less', 'scss', 'ics', 'odt', 'doc', 'docx', 'ppt', 'pptx', 'pdf', 'swf', 'txt', 'ods', 'xls', 'xlsx', 'eot', 'woff', 'woff2', 'ttf', 'flv', 'wmv', 'mp3', 'ogg', 'wav', 'avi', 'mov', 'mp4', 'mpeg', 'webm', 'mkv', 'rar', 'zip'],
+
+    /*
+    |--------------------------------------------------------------------------
     | Image Extensions
     |--------------------------------------------------------------------------
     |
@@ -52,7 +75,7 @@ return [
     |
     */
 
-    'image_extensions' => ['jpg', 'jpeg', 'bmp', 'png', 'webp', 'gif'],
+    'image_extensions' => ['jpg', 'jpeg', 'bmp', 'png', 'webp', 'gif', 'svg'],
 
     /*
     |--------------------------------------------------------------------------
